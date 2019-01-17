@@ -1,0 +1,63 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'maven-publish'
+
+buildscript {
+	repositories {
+		maven {
+			url "https://plugins.gradle.org/m2/"
+		}
+		jcenter()
+	}
+}
+
+sourceCompatibility = 1.8
+version = '0.1.0'
+
+def ENV = System.getenv()
+if (ENV.BUILD_NUMBER) {
+    version = version + "." + "${System.getenv().BUILD_NUMBER}"
+}
+
+group = 'net.fabricmc'
+archivesBaseName = 'mappings-mappings-parser'
+
+repositories {
+	mavenCentral()
+	maven {
+		name = 'Fabric'
+		url = 'http://maven.modmuss50.me/'
+	}
+}
+
+dependencies {
+	testImplementation(
+		'org.junit.jupiter:junit-jupiter-api:5.1.0'
+	)
+	testRuntimeOnly(
+		'org.junit.jupiter:junit-jupiter-engine:5.1.0'
+	)
+
+	implementation 'org.ow2.asm:asm:7.0'
+	implementation 'org.ow2.asm:asm-analysis:7.0'
+	implementation 'org.ow2.asm:asm-commons:7.0'
+	implementation 'org.ow2.asm:asm-tree:7.0'
+	implementation 'org.ow2.asm:asm-util:7.0'
+	implementation 'net.fabricmc:sponge-mixin:0.7.11.14'
+}
+
+publishing {
+	publications {
+		maven(MavenPublication) {
+			groupId 'net.fabricmc'
+			artifactId "tiny-mappings-parser"
+			version version
+
+			artifact (jar)
+		}
+	}
+}
+
+apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/maven.gradle'
+apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/license.gradle'
