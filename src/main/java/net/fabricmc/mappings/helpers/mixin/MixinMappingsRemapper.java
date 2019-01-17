@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappings.mixin;
+package net.fabricmc.mappings.helpers.mixin;
 
 import net.fabricmc.mappings.*;
 import org.objectweb.asm.commons.Remapper;

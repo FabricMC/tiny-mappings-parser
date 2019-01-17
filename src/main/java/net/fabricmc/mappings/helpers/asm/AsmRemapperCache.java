@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappings.asm;
+package net.fabricmc.mappings.helpers.asm;
 
 import org.objectweb.asm.commons.Remapper;
 
