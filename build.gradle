@@ -21,7 +21,7 @@ if (ENV.BUILD_NUMBER) {
 }
 
 group = 'net.fabricmc'
-archivesBaseName = 'mappings-mappings-parser'
+archivesBaseName = 'tiny-mappings-parser'
 
 repositories {
 	mavenCentral()
