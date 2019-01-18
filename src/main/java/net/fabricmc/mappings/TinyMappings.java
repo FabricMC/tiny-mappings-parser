@@ -23,40 +23,44 @@ import java.util.*;
 
 class TinyMappings implements Mappings {
 	private static class ClassEntryImpl implements ClassEntry {
-		private final Map<String, String> names;
+		private final Map<String, Integer> namespacesToIds;
+		private final String[] names;
 
-		ClassEntryImpl(String[] data, String[] namespaceList) {
-			names = new HashMap<>();
+		ClassEntryImpl(Map<String, Integer> namespacesToIds, String[] data, String[] namespaceList) {
+			this.namespacesToIds = namespacesToIds;
+			names = new String[namespaceList.length];
 			for (int i = 0; i < namespaceList.length; i++) {
-				names.put(namespaceList[i], data[i + 1]);
+				names[i] = data[i + 1].intern();
 			}
 		}
 
 		@Override
 		public String get(String namespace) {
-			return names.get(namespace);
+			return names[namespacesToIds.get(namespace)];
 		}
 	}
 
 	private static class EntryImpl implements FieldEntry, MethodEntry {
-		private final Map<String, EntryTriple> names;
+		private final Map<String, Integer> namespacesToIds;
+		private final EntryTriple[] names;
 
-		EntryImpl(String[] data, String[] namespaceList, Map<String, ClassRemapper> targetRemappers, boolean isMethod) {
-			names = new HashMap<>();
+		EntryImpl(Map<String, Integer> namespacesToIds, String[] data, String[] namespaceList, Map<String, ClassRemapper> targetRemappers, boolean isMethod) {
+			this.namespacesToIds = namespacesToIds;
+			names = new EntryTriple[namespaceList.length];
 			// add namespaceList[0]
-			names.put(namespaceList[0], new EntryTriple(data[1], data[3], data[2]));
+			names[0] = new EntryTriple(data[1].intern(), data[3].intern(), data[2].intern());
 			// add namespaceList[1+]
 			for (int i = 1; i < namespaceList.length; i++) {
 				String target = namespaceList[i];
 				String mappedOwner = targetRemappers.get(target).map(data[1]);
 				String mappedDesc = isMethod ? targetRemappers.get(target).mapMethodDesc(data[2]) : targetRemappers.get(target).mapDesc(data[2]);
-				names.put(target, new EntryTriple(mappedOwner, data[3 + i], mappedDesc));
+				names[i] = new EntryTriple(mappedOwner.intern(), data[3 + i].intern(), mappedDesc.intern());
 			}
 		}
 
 		@Override
 		public EntryTriple get(String namespace) {
-			return names.get(namespace);
+			return names[namespacesToIds.get(namespace)];
 		}
 	}
 
@@ -83,7 +87,7 @@ class TinyMappings implements Mappings {
 		}
 	}
 
-	private final Set<String> namespaces;
+	private final Map<String, Integer> namespacesToIds;
 	private final List<ClassEntryImpl> classEntries;
 	private final List<EntryImpl> fieldEntries, methodEntries;
 
@@ -99,12 +103,14 @@ class TinyMappings implements Mappings {
 				throw new IOException("Invalid mapping version!");
 			}
 
-			namespaces = new HashSet<>();
+			namespacesToIds = new HashMap<>();
 			String[] namespaceList = new String[header.length - 1];
 			for (int i = 1; i < header.length; i++) {
-				namespaceList[i - 1] = header[i];
-				if (!namespaces.add(header[i])) {
+				namespaceList[i - 1] = header[i].intern();
+				if (namespacesToIds.containsKey(header[i])) {
 					throw new IOException("Duplicate namespace: " + header[i]);
+				} else {
+					namespacesToIds.put(header[i], i - 1);
 				}
 			}
 
@@ -121,7 +127,7 @@ class TinyMappings implements Mappings {
 				String[] splitLine = line.split("\t");
 				if (splitLine.length >= 2) {
 					if ("CLASS".equals(splitLine[0])) {
-						ClassEntryImpl entry = new ClassEntryImpl(splitLine, namespaceList);
+						ClassEntryImpl entry = new ClassEntryImpl(namespacesToIds, splitLine, namespaceList);
 						classEntries.add(entry);
 						firstNamespaceClassEntries.put(entry.get(firstNamespace), entry);
 					} else {
@@ -137,9 +143,9 @@ class TinyMappings implements Mappings {
 
 			for (String[] splitLine : linesStageTwo) {
 				if ("FIELD".equals(splitLine[0])) {
-					fieldEntries.add(new EntryImpl(splitLine, namespaceList, targetRemappers, false));
+					fieldEntries.add(new EntryImpl(namespacesToIds, splitLine, namespaceList, targetRemappers, false));
 				} else if ("METHOD".equals(splitLine[0])) {
-					methodEntries.add(new EntryImpl(splitLine, namespaceList, targetRemappers, false));
+					methodEntries.add(new EntryImpl(namespacesToIds, splitLine, namespaceList, targetRemappers, false));
 				}
 			}
 
@@ -151,7 +157,7 @@ class TinyMappings implements Mappings {
 
 	@Override
 	public Collection<String> getNamespaces() {
-		return namespaces;
+		return namespacesToIds.keySet();
 	}
 
 	@Override
