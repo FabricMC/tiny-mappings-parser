@@ -51,11 +51,19 @@ public class EntryTriple {
 
 	@Override
 	public boolean equals(Object o) {
-		return super.equals(o);
+		if (!(o instanceof EntryTriple)) {
+			return false;
+		} else if (o == this) {
+			return true;
+		} else {
+			EntryTriple other = (EntryTriple) o;
+
+			return other.owner.equals(owner) && other.name.equals(name) && other.desc.equals(desc);
+		}
 	}
 
 	@Override
 	public int hashCode() {
-		return super.hashCode();
+		return owner.hashCode() * 37 + name.hashCode() * 19 + desc.hashCode();
 	}
 }
