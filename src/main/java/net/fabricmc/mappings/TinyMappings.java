@@ -26,11 +26,11 @@ class TinyMappings implements Mappings {
 		private final Map<String, Integer> namespacesToIds;
 		private final String[] names;
 
-		ClassEntryImpl(Map<String, Integer> namespacesToIds, String[] data, String[] namespaceList) {
+		ClassEntryImpl(Map<String, Integer> namespacesToIds, MappedStringDeduplicator deduplicator, String[] data, String[] namespaceList) {
 			this.namespacesToIds = namespacesToIds;
 			names = new String[namespaceList.length];
 			for (int i = 0; i < namespaceList.length; i++) {
-				names[i] = data[i + 1].intern();
+				names[i] = deduplicator.deduplicate(MappedStringDeduplicator.Category.CLASS_NAME, data[i + 1]);
 			}
 		}
 
@@ -44,17 +44,29 @@ class TinyMappings implements Mappings {
 		private final Map<String, Integer> namespacesToIds;
 		private final EntryTriple[] names;
 
-		EntryImpl(Map<String, Integer> namespacesToIds, String[] data, String[] namespaceList, Map<String, ClassRemapper> targetRemappers, boolean isMethod) {
+		EntryImpl(Map<String, Integer> namespacesToIds, MappedStringDeduplicator deduplicator, String[] data, String[] namespaceList, Map<String, ClassRemapper> targetRemappers, boolean isMethod) {
+			MappedStringDeduplicator.Category descCategory = isMethod
+					? MappedStringDeduplicator.Category.METHOD_DESCRIPTOR
+					: MappedStringDeduplicator.Category.FIELD_DESCRIPTOR;
+
 			this.namespacesToIds = namespacesToIds;
 			names = new EntryTriple[namespaceList.length];
 			// add namespaceList[0]
-			names[0] = new EntryTriple(data[1].intern(), data[3].intern(), data[2].intern());
+			names[0] = new EntryTriple(
+					deduplicator.deduplicate(MappedStringDeduplicator.Category.CLASS_NAME, data[1]),
+					deduplicator.deduplicate(MappedStringDeduplicator.Category.NAME, data[3]),
+					deduplicator.deduplicate(descCategory, data[2])
+			);
 			// add namespaceList[1+]
 			for (int i = 1; i < namespaceList.length; i++) {
 				String target = namespaceList[i];
 				String mappedOwner = targetRemappers.get(target).map(data[1]);
 				String mappedDesc = isMethod ? targetRemappers.get(target).mapMethodDesc(data[2]) : targetRemappers.get(target).mapDesc(data[2]);
-				names[i] = new EntryTriple(mappedOwner.intern(), data[3 + i].intern(), mappedDesc.intern());
+				names[i] = new EntryTriple(
+						mappedOwner, /* already deduplicated */
+						deduplicator.deduplicate(MappedStringDeduplicator.Category.NAME, data[3 + i]),
+						deduplicator.deduplicate(descCategory, mappedDesc)
+				);
 			}
 		}
 
@@ -91,22 +103,26 @@ class TinyMappings implements Mappings {
 	private final List<ClassEntryImpl> classEntries;
 	private final List<EntryImpl> fieldEntries, methodEntries;
 
+	@Deprecated
 	protected TinyMappings(InputStream stream) throws IOException {
+		this(stream, new MappedStringDeduplicator.MapBased());
+	}
+
+	protected TinyMappings(InputStream stream, MappedStringDeduplicator deduplicator) throws IOException {
 		try (
 			InputStreamReader streamReader = new InputStreamReader(stream);
 			BufferedReader reader = new BufferedReader(streamReader);
 		) {
 
 			String[] header = reader.readLine().split("\t");
-			if (header.length <= 1
-				|| !header[0].equals("v1")) {
+			if (header.length <= 1 || !header[0].equals("v1")) {
 				throw new IOException("Invalid mapping version!");
 			}
 
-			namespacesToIds = new HashMap<>();
 			String[] namespaceList = new String[header.length - 1];
+			namespacesToIds = new HashMap<>();
 			for (int i = 1; i < header.length; i++) {
-				namespaceList[i - 1] = header[i].intern();
+				namespaceList[i - 1] = header[i];
 				if (namespacesToIds.containsKey(header[i])) {
 					throw new IOException("Duplicate namespace: " + header[i]);
 				} else {
@@ -115,43 +131,50 @@ class TinyMappings implements Mappings {
 			}
 
 			classEntries = new ArrayList<>();
-			fieldEntries = new ArrayList<>();
-			methodEntries = new ArrayList<>();
 
 			String firstNamespace = header[1];
 			Map<String, ClassEntryImpl> firstNamespaceClassEntries = new HashMap<>();
-			List<String[]> linesStageTwo = new ArrayList<>();
+			List<String[]> fieldLines = new ArrayList<>();
+			List<String[]> methodLines = new ArrayList<>();
 
 			String line;
 			while ((line = reader.readLine()) != null) {
 				String[] splitLine = line.split("\t");
 				if (splitLine.length >= 2) {
-					if ("CLASS".equals(splitLine[0])) {
-						ClassEntryImpl entry = new ClassEntryImpl(namespacesToIds, splitLine, namespaceList);
-						classEntries.add(entry);
-						firstNamespaceClassEntries.put(entry.get(firstNamespace), entry);
-					} else {
-						linesStageTwo.add(splitLine);
+					switch (splitLine[0]) {
+						case "CLASS":
+							ClassEntryImpl entry = new ClassEntryImpl(namespacesToIds, deduplicator, splitLine, namespaceList);
+							classEntries.add(entry);
+							firstNamespaceClassEntries.put(entry.get(firstNamespace), entry);
+							break;
+						case "FIELD":
+							fieldLines.add(splitLine);
+							break;
+						case "METHOD":
+							methodLines.add(splitLine);
+							break;
 					}
 				}
 			}
+
+			fieldEntries = new ArrayList<>(fieldLines.size());
+			methodEntries = new ArrayList<>(methodLines.size());
 
 			Map<String, ClassRemapper> targetRemappers = new HashMap<>();
 			for (int i = 1; i < namespaceList.length; i++) {
 				targetRemappers.put(namespaceList[i], new ClassRemapper(firstNamespaceClassEntries, namespaceList[i]));
 			}
 
-			for (String[] splitLine : linesStageTwo) {
-				if ("FIELD".equals(splitLine[0])) {
-					fieldEntries.add(new EntryImpl(namespacesToIds, splitLine, namespaceList, targetRemappers, false));
-				} else if ("METHOD".equals(splitLine[0])) {
-					methodEntries.add(new EntryImpl(namespacesToIds, splitLine, namespaceList, targetRemappers, false));
-				}
+			for (String[] splitLine : fieldLines) {
+				fieldEntries.add(new EntryImpl(namespacesToIds, deduplicator, splitLine, namespaceList, targetRemappers, false));
+			}
+
+			for (String[] splitLine : methodLines) {
+				methodEntries.add(new EntryImpl(namespacesToIds, deduplicator, splitLine, namespaceList, targetRemappers, false));
 			}
 
 			((ArrayList<ClassEntryImpl>) classEntries).trimToSize();
-			((ArrayList<EntryImpl>) fieldEntries).trimToSize();
-			((ArrayList<EntryImpl>) methodEntries).trimToSize();
+			// fieldEntries/methodEntries are already the right size
 		}
 	}
 

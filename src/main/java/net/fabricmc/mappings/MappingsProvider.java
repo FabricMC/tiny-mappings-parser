@@ -29,6 +29,12 @@ public final class MappingsProvider {
     }
 
     public static Mappings readTinyMappings(InputStream stream) throws IOException {
-        return new TinyMappings(stream);
+        return readTinyMappings(stream, true);
+    }
+
+    public static Mappings readTinyMappings(InputStream stream, boolean saveMemoryUsage) throws IOException {
+        return new TinyMappings(stream,
+                saveMemoryUsage ? new MappedStringDeduplicator.MapBased() : MappedStringDeduplicator.EMPTY
+        );
     }
 }
