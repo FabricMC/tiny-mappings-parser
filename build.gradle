@@ -39,12 +39,12 @@ dependencies {
 		'org.junit.jupiter:junit-jupiter-engine:5.1.0'
 	)
 
-	implementation 'org.ow2.asm:asm:7.0'
-	implementation 'org.ow2.asm:asm-analysis:7.0'
-	implementation 'org.ow2.asm:asm-commons:7.0'
-	implementation 'org.ow2.asm:asm-tree:7.0'
-	implementation 'org.ow2.asm:asm-util:7.0'
-	implementation 'net.fabricmc:sponge-mixin:0.7.11.14'
+	implementation 'org.ow2.asm:asm:7.1'
+	implementation 'org.ow2.asm:asm-analysis:7.1'
+	implementation 'org.ow2.asm:asm-commons:7.1'
+	implementation 'org.ow2.asm:asm-tree:7.1'
+	implementation 'org.ow2.asm:asm-util:7.1'
+	implementation 'net.fabricmc:sponge-mixin:0.7.11.17'
 }
 
 publishing {

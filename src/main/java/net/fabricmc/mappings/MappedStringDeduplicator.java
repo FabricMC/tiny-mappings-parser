@@ -44,7 +44,13 @@ interface MappedStringDeduplicator {
         @Override
         public String deduplicate(Category category, String string) {
             Map<String, String> map = data.get(category);
-            return map.putIfAbsent(string, string);
+            String sDedup = map.get(string);
+            if (sDedup != null) {
+                return sDedup;
+            } else {
+                map.put(string, string);
+                return string;
+            }
         }
     }
 }
