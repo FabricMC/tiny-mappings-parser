@@ -3,7 +3,7 @@ package net.fabricmc.tinyv2;
 import java.util.Collection;
 import java.util.List;
 
- class CommentsImpl implements Comments {
+public class CommentsImpl implements Comments {
     private List<CommentEntry.Class> classComments;
     private List<CommentEntry.Field> fieldComments;
     private List<CommentEntry.Method> methodComments;

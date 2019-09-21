@@ -209,6 +209,8 @@ public class V2MappingsProvider {
                 default:
                     throw new RuntimeException("unexpected comment without parent");
             }
+
+            currentComments.add(comment);
         }
 
         private class MappingsImpl implements Mappings {
