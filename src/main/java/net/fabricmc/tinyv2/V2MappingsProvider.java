@@ -90,11 +90,11 @@ public class V2MappingsProvider {
     }
 
     private static class Visitor implements TinyVisitor {
-        private Collection<ClassEntry> classEntries;
-        private Collection<MethodEntry> methodEntries;
-        private Collection<FieldEntry> fieldEntries;
-        private Collection<MethodParameterEntry> methodParameterEntries;
-        private Collection<LocalVariableEntry> localVariableEntries;
+        private Collection<ClassEntry> classEntries = new ArrayList<>();
+        private Collection<MethodEntry> methodEntries= new ArrayList<>();
+        private Collection<FieldEntry> fieldEntries= new ArrayList<>();
+        private Collection<MethodParameterEntry> methodParameterEntries= new ArrayList<>();
+        private Collection<LocalVariableEntry> localVariableEntries= new ArrayList<>();
         private Comments comments = new CommentsImpl(new ArrayList<>(), new ArrayList<>(), new ArrayList<>()
                 , new ArrayList<>(), new ArrayList<>());
         private List<String> namespaces;
