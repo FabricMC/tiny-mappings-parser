@@ -1,4 +1,4 @@
-package net.fabricmc.tinyv2;
+package net.fabricmc.tinyv2.model;
 
 import net.fabricmc.mappings.EntryTriple;
 

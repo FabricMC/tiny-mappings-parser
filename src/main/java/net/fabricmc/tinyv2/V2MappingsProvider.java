@@ -5,14 +5,20 @@ import net.fabricmc.mappings.EntryTriple;
 import net.fabricmc.mappings.FieldEntry;
 import net.fabricmc.mappings.Mappings;
 import net.fabricmc.mappings.MethodEntry;
+import net.fabricmc.tinyv2.model.CommentEntry;
+import net.fabricmc.tinyv2.model.Comments;
+import net.fabricmc.tinyv2.model.CommentsImpl;
+import net.fabricmc.tinyv2.model.LocalVariable;
+import net.fabricmc.tinyv2.model.LocalVariableEntry;
+import net.fabricmc.tinyv2.model.MethodParameter;
+import net.fabricmc.tinyv2.model.MethodParameterEntry;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.function.ToIntFunction;
 
 public class V2MappingsProvider {
     public static Mappings readTinyMappings(BufferedReader reader) throws IOException {
@@ -30,76 +36,76 @@ public class V2MappingsProvider {
     }
 
     private static class ClassEntryImpl implements ClassEntry {
-        private final Map<String, Integer> namespaceIndices;
+        private final ToIntFunction<String> namespaceIndices;
         private final String[] names;
 
-        ClassEntryImpl(Map<String, Integer> namespaceIndices, String[] names) {
+        ClassEntryImpl(ToIntFunction<String> namespaceIndices, String[] names) {
             this.namespaceIndices = namespaceIndices;
             this.names = names;
         }
 
         @Override
         public String get(String namespace) {
-            return names[namespaceIndices.get(namespace)];
+            return names[namespaceIndices.applyAsInt(namespace)];
         }
     }
 
     private static class MemberEntryImpl implements FieldEntry, MethodEntry {
-        private final Map<String, Integer> namespaceIndices;
+        private final ToIntFunction<String> namespaceIndices;
         private final EntryTriple[] names;
 
-        MemberEntryImpl(Map<String, Integer> namespaceIndices, EntryTriple[] names) {
+        MemberEntryImpl(ToIntFunction<String> namespaceIndices, EntryTriple[] names) {
             this.namespaceIndices = namespaceIndices;
             this.names = names;
         }
 
         @Override
         public EntryTriple get(String namespace) {
-            return names[namespaceIndices.get(namespace)];
+            return names[namespaceIndices.applyAsInt(namespace)];
         }
     }
 
     private static class ParameterEntryImpl implements MethodParameterEntry {
-        private final Map<String, Integer> namespaceIndices;
+        private final ToIntFunction<String> namespaceIndices;
         private final MethodParameter[] names;
 
-        ParameterEntryImpl(Map<String, Integer> namespaceIndices, MethodParameter[] names) {
+        ParameterEntryImpl(ToIntFunction<String> namespaceIndices, MethodParameter[] names) {
             this.namespaceIndices = namespaceIndices;
             this.names = names;
         }
 
         @Override
         public MethodParameter get(String namespace) {
-            return names[namespaceIndices.get(namespace)];
+            return names[namespaceIndices.applyAsInt(namespace)];
         }
     }
 
     private static class LocalVariableEntryEntryImpl implements LocalVariableEntry {
-        private final Map<String, Integer> namespaceIndices;
+        private final ToIntFunction<String> namespaceIndices;
         private final LocalVariable[] names;
 
-        LocalVariableEntryEntryImpl(Map<String, Integer> namespaceIndices, LocalVariable[] names) {
+        LocalVariableEntryEntryImpl(ToIntFunction<String> namespaceIndices, LocalVariable[] names) {
             this.namespaceIndices = namespaceIndices;
             this.names = names;
         }
 
         @Override
         public LocalVariable get(String namespace) {
-            return names[namespaceIndices.get(namespace)];
+            return names[namespaceIndices.applyAsInt(namespace)];
         }
     }
 
     private static class Visitor implements TinyVisitor {
         private Collection<ClassEntry> classEntries = new ArrayList<>();
-        private Collection<MethodEntry> methodEntries= new ArrayList<>();
-        private Collection<FieldEntry> fieldEntries= new ArrayList<>();
-        private Collection<MethodParameterEntry> methodParameterEntries= new ArrayList<>();
-        private Collection<LocalVariableEntry> localVariableEntries= new ArrayList<>();
+        private Collection<MethodEntry> methodEntries = new ArrayList<>();
+        private Collection<FieldEntry> fieldEntries = new ArrayList<>();
+        private Collection<MethodParameterEntry> methodParameterEntries = new ArrayList<>();
+        private Collection<LocalVariableEntry> localVariableEntries = new ArrayList<>();
         private Comments comments = new CommentsImpl(new ArrayList<>(), new ArrayList<>(), new ArrayList<>()
                 , new ArrayList<>(), new ArrayList<>());
         private List<String> namespaces;
 
-        private Map<String, Integer> namespaceIndices = new HashMap<>();
+        private ToIntFunction<String> namespaceIndices;
         private int namespaceAmount;
 
         private String[] currentClassNames;
@@ -113,47 +119,28 @@ public class V2MappingsProvider {
         public void start(TinyMetadata metadata) {
             namespaces = metadata.getNamespaces();
             namespaceAmount = namespaces.size();
-            for (int i = 0; i < namespaceAmount; i++) {
-                namespaceIndices.put(namespaces.get(i), i);
-            }
+            namespaceIndices = metadata::index;
         }
 
         @Override
         public void pushClass(MappingGetter name) {
             storeClassMappings(name);
             classEntries.add(new ClassEntryImpl(namespaceIndices, currentClassNames));
-            currentCommentType = CommentType.CLASS;
-            currentComments = new ArrayList<>();
+            setNewCommentType(CommentType.CLASS);
         }
 
         @Override
         public void pushField(MappingGetter name, String descriptor) {
             storeMemberMappings(name, descriptor);
             fieldEntries.add(new MemberEntryImpl(namespaceIndices, currentMemberNames));
-            currentCommentType = CommentType.FIELD;
-            currentComments = new ArrayList<>();
+            setNewCommentType(CommentType.FIELD);
         }
 
         @Override
         public void pushMethod(MappingGetter name, String descriptor) {
             storeMemberMappings(name, descriptor);
             methodEntries.add(new MemberEntryImpl(namespaceIndices, currentMemberNames));
-            currentCommentType = CommentType.METHOD;
-            currentComments = new ArrayList<>();
-        }
-
-        private void storeClassMappings(MappingGetter namesProvider) {
-            currentClassNames = new String[namespaceAmount];
-            for (int i = 0; i < namespaceAmount; i++) {
-                currentClassNames[i] = namesProvider.get(i);
-            }
-        }
-
-        private void storeMemberMappings(MappingGetter namesProvider, String descriptor) {
-            currentMemberNames = new EntryTriple[namespaceAmount];
-            for (int i = 0; i < namespaceAmount; i++) {
-                currentMemberNames[i] = new EntryTriple(currentClassNames[i], namesProvider.get(i), descriptor);
-            }
+            setNewCommentType(CommentType.METHOD);
         }
 
         @Override
@@ -163,8 +150,7 @@ public class V2MappingsProvider {
                 currentParameterNames[i] = new MethodParameter(currentMemberNames[i], name.get(i), localVariableIndex);
             }
             methodParameterEntries.add(new ParameterEntryImpl(namespaceIndices, currentParameterNames));
-            currentCommentType = CommentType.PARAMETER;
-            currentComments = new ArrayList<>();
+            setNewCommentType(CommentType.PARAMETER);
         }
 
         @Override
@@ -174,8 +160,7 @@ public class V2MappingsProvider {
                 currentLocalVariableNames[i] = new LocalVariable(currentMemberNames[i], name.get(i), localVariableIndex, localVariableStartOffset, localVariableTableIndex);
             }
             localVariableEntries.add(new LocalVariableEntryEntryImpl(namespaceIndices, currentLocalVariableNames));
-            currentCommentType = CommentType.LOCAL_VARIABLE;
-            currentComments = new ArrayList<>();
+            setNewCommentType(CommentType.LOCAL_VARIABLE);
         }
 
         @Override
@@ -211,6 +196,25 @@ public class V2MappingsProvider {
             }
 
             currentComments.add(comment);
+        }
+
+        private void setNewCommentType(CommentType type) {
+            currentCommentType = type;
+            currentComments = new ArrayList<>();
+        }
+
+        private void storeClassMappings(MappingGetter namesProvider) {
+            currentClassNames = new String[namespaceAmount];
+            for (int i = 0; i < namespaceAmount; i++) {
+                currentClassNames[i] = namesProvider.get(i);
+            }
+        }
+
+        private void storeMemberMappings(MappingGetter namesProvider, String descriptor) {
+            currentMemberNames = new EntryTriple[namespaceAmount];
+            for (int i = 0; i < namespaceAmount; i++) {
+                currentMemberNames[i] = new EntryTriple(currentClassNames[i], namesProvider.get(i), descriptor);
+            }
         }
 
         private class MappingsImpl implements Mappings {
