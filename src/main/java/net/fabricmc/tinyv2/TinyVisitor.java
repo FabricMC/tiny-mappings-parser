@@ -12,7 +12,7 @@ package net.fabricmc.tinyv2;
  * {@link TinyMetadata#index(String)} index} {@code 0}. Do not remap these descriptors as
  * you don't have access to all class mappings when you received the descriptors! It's
  * recommended to put the collected mappings in a {@link java.util.Map} and then use a
- * {@link ClassMapper} to remap descriptors when the mapping visit is finished.
+ * remapper to remap descriptors when the mapping visit is finished.
  */
 public interface TinyVisitor {
 
