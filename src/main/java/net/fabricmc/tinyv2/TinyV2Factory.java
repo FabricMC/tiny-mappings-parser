@@ -317,7 +317,8 @@ public final class TinyV2Factory {
 		}
 
 		boolean checkPartCount(int indent, int partCount, int namespaceCount) {
-			return (partCount - indent) == (namespaced ? (namespaceCount + actualParts) : actualParts);
+			final int parts = partCount - indent;
+			return namespaced ? parts > 0 && parts <= (namespaceCount + actualParts) : parts == actualParts;
 		}
 
 		abstract boolean checkStack(TinyState[] stack, int currentIndent);
@@ -387,7 +388,11 @@ public final class TinyV2Factory {
 
 		@Override
 		public String get(int namespace) {
-			return unescapeOpt(parts[offset + namespace], escapedStrings);
+			int index = offset + namespace;
+			if (index >= parts.length) {
+				index = parts.length - 1;
+			}
+			return unescapeOpt(parts[index], escapedStrings);
 		}
 
 		@Override
@@ -399,6 +404,28 @@ public final class TinyV2Factory {
 			final String[] ret = new String[parts.length - offset];
 			for (int i = 0; i < ret.length; i++) {
 				ret[i] = unescape(parts[i + offset]);
+			}
+			return ret;
+		}
+
+		@Override
+		public String[] getAll(int namespaceCount) {
+			if (namespaceCount <= parts.length - offset)
+				return getAll();
+
+			if (!escapedStrings) {
+				String[] ret = new String[namespaceCount];
+				System.arraycopy(parts, offset, ret, 0, parts.length - offset);
+				Arrays.fill(ret, parts.length - offset, namespaceCount, ret[parts.length - offset - 1]);
+				return ret;
+			}
+
+			final String[] ret = new String[namespaceCount];
+			for (int i = 0; i < ret.length; i++) {
+				int index = i + offset;
+				if (index >= parts.length)
+					index = parts.length - 1;
+				ret[i] = unescape(parts[index]);
 			}
 			return ret;
 		}
