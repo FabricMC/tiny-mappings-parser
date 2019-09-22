@@ -52,6 +52,10 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 	from sourceSets.main.allSource
 }
 
+test {
+    useJUnitPlatform()
+}
+
 publishing {
 	publications {
 		maven(MavenPublication) {

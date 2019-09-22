@@ -1,6 +1,7 @@
 package net.fabricmc.tinyv2;
 
 import com.google.common.base.Strings;
+import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,9 +10,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class TinyV2VisitTest {
-
-	public static void main(String... args) throws IOException {
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(TinyV2VisitTest.class.getResourceAsStream("inhtree.tiny"), StandardCharsets.UTF_8))) {
+	@Test
+	public void testVisitInheritanceTree() throws IOException {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(TinyV2VisitTest.class.getResourceAsStream("/inhtree.tiny"), StandardCharsets.UTF_8))) {
 			TinyV2Factory.visit(reader, new Visitor());
 		}
 	}
@@ -53,6 +54,8 @@ public class TinyV2VisitTest {
 			System.out.println(name.get(0));
 			indent();
 			System.out.println(Arrays.toString(name.getAll()));
+			indent();
+			System.out.println(Arrays.toString(name.getAll(3)));
 			indent();
 			System.out.println(descriptor);
 		}

@@ -1,13 +1,17 @@
 package net.fabricmc.tinyv2;
 
 import net.fabricmc.tinyv2.ClassMapper;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class MapperTest {
 
-	public static void main(String... args) {
+	@Test
+	public void testMapper() {
 		Map<String, String> map = new HashMap<>();
 
 		map.put("java/lang/Object", "net/minecraft/client/Minecraft");
@@ -15,8 +19,8 @@ public class MapperTest {
 
 		ClassMapper mapper = new ClassMapper(map);
 
-		System.out.println(mapper.mapDescriptor("(IIZLjava/lang/Integer;Labc;J)V"));
-		System.out.println(mapper.mapDescriptor("(IIZLjava/lang/Object;Labc;J)Labc;"));
-		System.out.println(mapper.mapDescriptor("(IIZLjava/lang/Object;Labc;J)Labc")); // wrong one
+		assertEquals("(IIZLjava/lang/Integer;Lnet/fabricmc/tinyv2/TinyVisitor;J)V", mapper.mapDescriptor("(IIZLjava/lang/Integer;Labc;J)V"));
+		assertEquals("(IIZLnet/minecraft/client/Minecraft;Lnet/fabricmc/tinyv2/TinyVisitor;J)Lnet/fabricmc/tinyv2/TinyVisitor;", mapper.mapDescriptor("(IIZLjava/lang/Object;Labc;J)Labc;"));
+		assertEquals("(IIZLjava/lang/Object;Labc;J)Labc", mapper.mapDescriptor("(IIZLjava/lang/Object;Labc;J)Labc")); // wrong one
 	}
 }
