@@ -1,5 +1,6 @@
 package net.fabricmc.mapping.reader.v2;
 
+import net.fabricmc.mapping.util.ClassMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;

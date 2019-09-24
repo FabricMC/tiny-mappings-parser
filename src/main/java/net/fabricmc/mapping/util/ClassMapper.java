@@ -1,4 +1,4 @@
-package net.fabricmc.mapping.reader.v2;
+package net.fabricmc.mapping.util;
 
 import java.util.Map;
 
