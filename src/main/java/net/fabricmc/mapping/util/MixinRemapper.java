@@ -11,6 +11,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A simple implementation of a mixin remapper backed by a tree mapping.
+ */
 public final class MixinRemapper implements IRemapper {
 
 	private final Map<EntryTriple, String> fieldNames = new HashMap<>();

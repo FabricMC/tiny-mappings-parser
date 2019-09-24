@@ -27,9 +27,9 @@ public final class TinyV2Factory {
 	 *
 	 * <p>This method will not close the {@code reader}!
 	 *
-	 * @param reader the reader that provides the mapping content
+	 * @param reader  the reader that provides the mapping content
 	 * @param visitor the visitor
-	 * @throws IOException if the reader throws one
+	 * @throws IOException           if the reader throws one
 	 * @throws MappingParseException if a mapping parsing error is encountered
 	 */
 	public static void visit(BufferedReader reader, TinyVisitor visitor) throws IOException, MappingParseException {
@@ -59,7 +59,7 @@ public final class TinyV2Factory {
 				}
 				lastIndent = currentIndent;
 
-				final String[] parts = line.split(SPACE_STRING);
+				final String[] parts = line.split(SPACE_STRING, -1);
 				final TinyState currentState = TinyState.get(currentIndent, parts[currentIndent]);
 
 				if (!currentState.checkPartCount(currentIndent, parts.length, namespaceCount)) {
@@ -93,7 +93,7 @@ public final class TinyV2Factory {
 	 *
 	 * @param reader the reader that provides the mapping content
 	 * @return the metadata of the mapping
-	 * @throws IOException if the reader throws one
+	 * @throws IOException              if the reader throws one
 	 * @throws IllegalArgumentException if a mapping format error is encountered
 	 */
 	public static TinyMetadata readMetadata(final BufferedReader reader) throws IOException, IllegalArgumentException {
@@ -105,7 +105,7 @@ public final class TinyV2Factory {
 		final String firstLine = reader.readLine();
 		if (firstLine == null)
 			throw new IllegalArgumentException("Empty reader!");
-		final String[] parts = firstLine.split(SPACE_STRING);
+		final String[] parts = firstLine.split(SPACE_STRING, -1);
 		if (parts.length < 5 || !parts[0].equals(HEADER_MARKER)) {
 			throw new IllegalArgumentException("Unsupported format!");
 		}
@@ -317,8 +317,7 @@ public final class TinyV2Factory {
 		}
 
 		boolean checkPartCount(int indent, int partCount, int namespaceCount) {
-			final int parts = partCount - indent;
-			return namespaced ? parts > 0 && parts <= (namespaceCount + actualParts) : parts == actualParts;
+			return partCount - indent == (namespaced ? namespaceCount + actualParts : actualParts);
 		}
 
 		abstract boolean checkStack(TinyState[] stack, int currentIndent);
@@ -389,14 +388,13 @@ public final class TinyV2Factory {
 		@Override
 		public String get(int namespace) {
 			int index = offset + namespace;
-			if (index >= parts.length) {
-				index = parts.length - 1;
-			}
+			while (parts[index].isEmpty())
+				index--;
 			return unescapeOpt(parts[index], escapedStrings);
 		}
 
 		@Override
-		public String[] getAll() {
+		public String[] getRaw() {
 			if (!escapedStrings) {
 				return Arrays.copyOfRange(parts, offset, parts.length);
 			}
@@ -409,23 +407,12 @@ public final class TinyV2Factory {
 		}
 
 		@Override
-		public String[] getAll(int namespaceCount) {
-			if (namespaceCount <= parts.length - offset)
-				return getAll();
-
-			if (!escapedStrings) {
-				String[] ret = new String[namespaceCount];
-				System.arraycopy(parts, offset, ret, 0, parts.length - offset);
-				Arrays.fill(ret, parts.length - offset, namespaceCount, ret[parts.length - offset - 1]);
-				return ret;
-			}
-
-			final String[] ret = new String[namespaceCount];
-			for (int i = 0; i < ret.length; i++) {
-				int index = i + offset;
-				if (index >= parts.length)
-					index = parts.length - 1;
-				ret[i] = unescape(parts[index]);
+		public String[] getFilled() {
+			final String[] ret = getRaw();
+			for (int i = 1; i < ret.length; i++) {
+				if (ret[i].isEmpty()) {
+					ret[i] = ret[i - 1];
+				}
 			}
 			return ret;
 		}

@@ -11,38 +11,20 @@ import java.util.function.ToIntFunction;
 /**
  * The factory class for tree tiny mapping models.
  */
-public final class TinyTreeFactory {
+public final class TinyMappingFactory {
 
 	/**
 	 * Loads a tree model from a buffered reader for v2 input.
 	 *
 	 * @param reader the buffered reader
 	 * @return the built reader model
-	 * @throws IOException if the reader throws one
+	 * @throws IOException           if the reader throws one
 	 * @throws MappingParseException if there is an issue with the v2 format
 	 */
 	public static TinyMapping load(BufferedReader reader) throws IOException, MappingParseException {
 		Visitor visitor = new Visitor();
 		TinyV2Factory.visit(reader, visitor);
-		final TinyMetadata metadata = visitor.metadata;
-		@SuppressWarnings("unchecked") final Map<String, ClassDef> defaultNamespaceClassMap = (Map<String, ClassDef>) (Map<?, ?>) visitor.classNames;
-		final Collection<ClassDef> classes = visitor.classes;
-		return new TinyMapping() {
-			@Override
-			public TinyMetadata getMetadata() {
-				return metadata;
-			}
-
-			@Override
-			public Map<String, ClassDef> getDefaultNamespaceClassMap() {
-				return defaultNamespaceClassMap;
-			}
-
-			@Override
-			public Collection<ClassDef> getClasses() {
-				return classes;
-			}
-		};
+		return new Mapping(visitor.metadata, visitor.classNames, visitor.classes);
 	}
 
 	/**
@@ -126,57 +108,10 @@ public final class TinyTreeFactory {
 			parent.methods.add(method);
 		}
 
-		final List<String> namespaces = ImmutableList.copyOf(namespaceList);
-		final TinyMetadata metadata = new TinyMetadata() {
-			@Override
-			public int getMajorVersion() {
-				return 1;
-			}
-
-			@Override
-			public int getMinorVersion() {
-				return 0;
-			}
-
-			@Override
-			public List<String> getNamespaces() {
-				return namespaces;
-			}
-
-			@Override
-			public Map<String, String> getProperties() {
-				return Collections.emptyMap();
-			}
-
-			@Override
-			public int index(String namespace) throws IllegalArgumentException {
-				Integer t = namespacesToIds.get(namespace);
-				if (t == null)
-					throw new IllegalArgumentException("Invalid namespace \"" + namespace + "\"!");
-				return t;
-			}
-		};
-
-		return new TinyMapping() {
-			@Override
-			public TinyMetadata getMetadata() {
-				return metadata;
-			}
-
-			@Override
-			@SuppressWarnings("unchecked")
-			public Map<String, ClassDef> getDefaultNamespaceClassMap() {
-				return (Map<String, ClassDef>) (Map<?, ?>) firstNamespaceClassEntries;
-			}
-
-			@Override
-			public Collection<ClassDef> getClasses() {
-				return classEntries;
-			}
-		};
+		return new Mapping(new LegacyMetadata(ImmutableList.copyOf(namespaceList), namespacesToIds), firstNamespaceClassEntries, classEntries);
 	}
 
-	private TinyTreeFactory() {
+	private TinyMappingFactory() {
 	}
 
 	private static final class Visitor implements TinyVisitor {
@@ -197,7 +132,7 @@ public final class TinyTreeFactory {
 
 		@Override
 		public void pushClass(MappingGetter name) {
-			ClassImpl clz = new ClassImpl(namespaceMapper, name.getAll());
+			ClassImpl clz = new ClassImpl(namespaceMapper, name.getRaw());
 			classes.add(clz);
 			classNames.put(name.get(0), clz);
 			inClass = clz;
@@ -209,7 +144,7 @@ public final class TinyTreeFactory {
 			if (inClass == null)
 				throw new IllegalStateException();
 
-			FieldImpl field = new FieldImpl(signatureMapper, namespaceMapper, name.getAll(), descriptor);
+			FieldImpl field = new FieldImpl(signatureMapper, namespaceMapper, name.getRaw(), descriptor);
 			inClass.fields.add(field);
 			last = field;
 		}
@@ -219,7 +154,7 @@ public final class TinyTreeFactory {
 			if (inClass == null)
 				throw new IllegalStateException();
 
-			MethodImpl method = new MethodImpl(signatureMapper, namespaceMapper, name.getAll(), descriptor);
+			MethodImpl method = new MethodImpl(signatureMapper, namespaceMapper, name.getRaw(), descriptor);
 			inClass.methods.add(method);
 			inMethod = method;
 			last = method;
@@ -230,7 +165,7 @@ public final class TinyTreeFactory {
 			if (inMethod == null)
 				throw new IllegalStateException();
 
-			ParameterImpl par = new ParameterImpl(namespaceMapper, name.getAll(), localVariableIndex);
+			ParameterImpl par = new ParameterImpl(namespaceMapper, name.getRaw(), localVariableIndex);
 			inMethod.parameters.add(par);
 			last = par;
 		}
@@ -240,7 +175,7 @@ public final class TinyTreeFactory {
 			if (inMethod == null)
 				throw new IllegalStateException();
 
-			LocalVariableImpl var = new LocalVariableImpl(namespaceMapper, name.getAll(), localVariableIndex, localVariableStartOffset, localVariableTableIndex);
+			LocalVariableImpl var = new LocalVariableImpl(namespaceMapper, name.getRaw(), localVariableIndex, localVariableStartOffset, localVariableTableIndex);
 			inMethod.localVariables.add(var);
 			last = var;
 		}
@@ -254,6 +189,73 @@ public final class TinyTreeFactory {
 
 		@Override
 		public void pop(int count) {
+		}
+	}
+
+	private static final class Mapping implements TinyMapping {
+
+		private final TinyMetadata metadata;
+		private final Map<String, ClassDef> map;
+		private final Collection<ClassDef> classes;
+
+		@SuppressWarnings("unchecked")
+		Mapping(TinyMetadata metadata, Map<String, ClassImpl> map, Collection<ClassDef> classes) {
+			this.metadata = metadata;
+			this.map = (Map<String, ClassDef>) (Map<?, ?>) map;
+			this.classes = classes;
+		}
+
+		@Override
+		public TinyMetadata getMetadata() {
+			return metadata;
+		}
+
+		@Override
+		public Map<String, ClassDef> getDefaultNamespaceClassMap() {
+			return map;
+		}
+
+		@Override
+		public Collection<ClassDef> getClasses() {
+			return classes;
+		}
+	}
+
+	private static final class LegacyMetadata implements TinyMetadata {
+		private final List<String> namespaces;
+		private final Map<String, Integer> namespacesToIds;
+
+		LegacyMetadata(List<String> namespaces, Map<String, Integer> namespacesToIds) {
+			this.namespaces = namespaces;
+			this.namespacesToIds = namespacesToIds;
+		}
+
+		@Override
+		public int getMajorVersion() {
+			return 1;
+		}
+
+		@Override
+		public int getMinorVersion() {
+			return 0;
+		}
+
+		@Override
+		public List<String> getNamespaces() {
+			return namespaces;
+		}
+
+		@Override
+		public Map<String, String> getProperties() {
+			return Collections.emptyMap();
+		}
+
+		@Override
+		public int index(String namespace) throws IllegalArgumentException {
+			Integer t = namespacesToIds.get(namespace);
+			if (t == null)
+				throw new IllegalArgumentException("Invalid namespace \"" + namespace + "\"!");
+			return t;
 		}
 	}
 }

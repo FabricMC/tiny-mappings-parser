@@ -22,8 +22,7 @@ abstract class MappedImpl implements Mapped {
 
 	@Override
 	public String getMappedName(String namespace) {
-		int t = namespaceMapper.applyAsInt(namespace);
-		return t >= names.length ? null : names[t];
+		return names[namespaceMapper.applyAsInt(namespace)];
 	}
 
 	@Override
@@ -32,7 +31,9 @@ abstract class MappedImpl implements Mapped {
 	}
 
 	String getName(int namespace) {
-		return namespace >= names.length ? names[names.length - 1] : names[namespace];
+		while (names[namespace].isEmpty())
+			namespace--;
+		return names[namespace];
 	}
 
 	void setComment(String comment) {

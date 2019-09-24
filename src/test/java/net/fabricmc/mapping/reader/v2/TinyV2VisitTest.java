@@ -33,7 +33,7 @@ public class TinyV2VisitTest {
 			indent();
 			System.out.println(name.get(0));
 			indent();
-			System.out.println(Arrays.toString(name.getAll()));
+			System.out.println(Arrays.toString(name.getRaw()));
 		}
 
 		@Override
@@ -42,7 +42,7 @@ public class TinyV2VisitTest {
 			indent();
 			System.out.println(name.get(0));
 			indent();
-			System.out.println(Arrays.toString(name.getAll()));
+			System.out.println(Arrays.toString(name.getRaw()));
 			indent();
 			System.out.println(descriptor);
 		}
@@ -53,9 +53,9 @@ public class TinyV2VisitTest {
 			indent();
 			System.out.println(name.get(0));
 			indent();
-			System.out.println(Arrays.toString(name.getAll()));
+			System.out.println(Arrays.toString(name.getRaw()));
 			indent();
-			System.out.println(Arrays.toString(name.getAll(3)));
+			System.out.println(Arrays.toString(name.getRaw()));
 			indent();
 			System.out.println(descriptor);
 		}

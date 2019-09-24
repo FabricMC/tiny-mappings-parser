@@ -17,7 +17,6 @@
 package net.fabricmc.mapping.util;
 
 import net.fabricmc.mapping.tree.*;
-import net.fabricmc.mapping.util.MethodData;
 import org.objectweb.asm.commons.Remapper;
 
 import net.fabricmc.mappings.*;
@@ -26,6 +25,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A factory for Java assembly remappers between namespaces in a mapping set.
+ */
 public final class AsmRemapperFactory {
 
 	private static final class SimpleRemapper extends Remapper {
@@ -65,10 +67,22 @@ public final class AsmRemapperFactory {
 	private final Map<String, SoftReference<SimpleRemapper>> remapperCache = new HashMap<>();
 	private final TinyMapping mapping;
 
+	/**
+	 * Create a factory backed by a set of mapping.
+	 *
+	 * @param mapping the mapping
+	 */
 	public AsmRemapperFactory(TinyMapping mapping) {
 		this.mapping = mapping;
 	}
 
+	/**
+	 * Obtains the remapper between two namespaces.
+	 *
+	 * @param from the source namespace
+	 * @param to the target namespace
+	 * @return the remapper
+	 */
 	public Remapper getRemapper(String from, String to) {
 		String key = from + ":" + to;
 		SoftReference<SimpleRemapper> remapperRef = remapperCache.get(key);

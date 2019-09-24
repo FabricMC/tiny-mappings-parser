@@ -20,26 +20,28 @@ public interface MappingGetter {
 	/**
 	 * Creates an array of all mapped names, ordered by their namespace's appearance.
 	 *
-	 * <p>This method returns all the mapped names in the declaration. It does not expand the
-	 * array to fill trailing empty namespaces with names from the last declared namespace. Use
-	 * {@link #getAll(int)} for a version that respect trailing empty namespaces.
+	 * <p>This method returns all the mapped names in the declaration. It does not fill the
+	 * array to fill the empty namespaces with names from the last declared namespace. Use
+	 * {@link #getFilled()} for a version that fills empty namespaces.
 	 *
 	 * <p>This method call would be expensive as each call may create a new array.
 	 *
+	 * <p>This method may return empty elements in the array.
+	 *
 	 * @return all mapped names
 	 */
-	String[] getAll();
+	String[] getRaw();
 
 	/**
 	 * Creates an array of all mapped names, ordered by their namespace's appearance.
 	 *
-	 * Compared to {@link #getAll()}, this method makes sure the returned array has a
-	 * length of at least {@code namespaceCount} and fills empty namespaces with the
-	 * mapping from the last namespace.
+	 * <p>This method returns all the mapped names. It fills the empty namespaces with
+	 * names from the last declared namespace. Use {@link #getRaw()} for a version that
+	 * does not fill empty namespaces.
 	 *
 	 * <p>This method call would be expensive as each call may create a new array.
 	 *
 	 * @return all mapped names
 	 */
-	String[] getAll(int namespaceCount);
+	String[] getFilled();
 }
