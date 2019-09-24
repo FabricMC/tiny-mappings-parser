@@ -1,4 +1,4 @@
-package net.fabricmc.tinyv2;
+package net.fabricmc.mapping.reader.v2;
 
 import java.util.List;
 import java.util.Map;
@@ -14,8 +14,6 @@ public interface TinyMetadata {
 	 * Gets the major version of the mapping.
 	 *
 	 * <p>This number is supposed to be non-negative, but a negative value may appear.
-	 *
-	 * <p>For now, it is just {@code 2}.
 	 *
 	 * @return the major version
 	 */

@@ -1,4 +1,4 @@
-package net.fabricmc.tinyv2;
+package net.fabricmc.mapping.reader.v2;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;

@@ -1,17 +1,14 @@
-package net.fabricmc.tinyv2;
+package net.fabricmc.mappings.model;
 
 import net.fabricmc.mappings.ClassEntry;
 import net.fabricmc.mappings.EntryTriple;
 import net.fabricmc.mappings.FieldEntry;
 import net.fabricmc.mappings.Mappings;
 import net.fabricmc.mappings.MethodEntry;
-import net.fabricmc.tinyv2.model.CommentEntry;
-import net.fabricmc.tinyv2.model.Comments;
-import net.fabricmc.tinyv2.model.CommentsImpl;
-import net.fabricmc.tinyv2.model.LocalVariable;
-import net.fabricmc.tinyv2.model.LocalVariableEntry;
-import net.fabricmc.tinyv2.model.MethodParameter;
-import net.fabricmc.tinyv2.model.MethodParameterEntry;
+import net.fabricmc.mapping.reader.v2.MappingGetter;
+import net.fabricmc.mapping.reader.v2.TinyMetadata;
+import net.fabricmc.mapping.reader.v2.TinyV2Factory;
+import net.fabricmc.mapping.reader.v2.TinyVisitor;
 
 import java.io.BufferedReader;
 import java.io.IOException;

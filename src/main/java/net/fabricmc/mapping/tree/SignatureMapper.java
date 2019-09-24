@@ -1,4 +1,4 @@
-package net.fabricmc.tinyv2;
+package net.fabricmc.mapping.tree;
 
 import java.util.Map;
 
@@ -9,39 +9,20 @@ import java.util.Map;
  *
  * <p>Note that remapping result changes when the map changes.
  */
-public final class ClassMapper {
+final class SignatureMapper {
 
-	private final Map<String, String> map;
+	private final Map<String, ? extends MappedImpl> map;
 
-	/**
-	 * Creates the mapper.
-	 *
-	 * @param map the map the mapper uses
-	 */
-	public ClassMapper(Map<String, String> map) {
+	SignatureMapper(Map<String, ? extends MappedImpl> map) {
 		this.map = map;
 	}
 
-	/**
-	 * Maps a class name.
-	 *
-	 * @param old the original name
-	 * @return the mapped name
-	 */
-	public String mapClass(String old) {
-		String got = map.get(old);
-		return got == null ? old : got;
+	String mapClass(int namespace, String old) {
+		MappedImpl got = map.get(old);
+		return got == null ? old : got.getName(namespace);
 	}
 
-	/**
-	 * Maps a descriptor.
-	 *
-	 * <p>If the descriptor is invalid, the passed descriptor is returned.
-	 *
-	 * @param old the original descriptor
-	 * @return the mapped descriptor
-	 */
-	public String mapDescriptor(String old) {
+	String mapDescriptor(int namespace, String old) {
 		int lastL = old.indexOf('L');
 		int lastSemi = -1;
 		if (lastL < 0) {
@@ -55,7 +36,7 @@ public final class ClassMapper {
 			lastSemi = old.indexOf(';', lastL + 1);
 			if (lastSemi == -1)
 				return old; // Invalid desc, nah!
-			builder.append('L').append(mapClass(old.substring(lastL + 1, lastSemi))).append(';');
+			builder.append('L').append(mapClass(namespace, old.substring(lastL + 1, lastSemi))).append(';');
 			lastL = old.indexOf('L', lastSemi + 1);
 		}
 

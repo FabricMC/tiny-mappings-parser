@@ -16,11 +16,11 @@
 
 package net.fabricmc.mappings;
 
-import net.fabricmc.tinyv2.model.Comments;
-import net.fabricmc.tinyv2.model.CommentsImpl;
-import net.fabricmc.tinyv2.model.LocalVariableEntry;
+import net.fabricmc.mappings.model.Comments;
+import net.fabricmc.mappings.model.CommentsImpl;
+import net.fabricmc.mappings.model.LocalVariableEntry;
 
-import net.fabricmc.tinyv2.model.MethodParameterEntry;
+import net.fabricmc.mappings.model.MethodParameterEntry;
 
 import java.util.ArrayList;
 import java.util.Collection;

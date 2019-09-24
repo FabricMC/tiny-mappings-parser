@@ -1,4 +1,4 @@
-package net.fabricmc.tinyv2;
+package net.fabricmc.mapping.reader.v2;
 
 /**
  * An exception encountered during mapping parsing.

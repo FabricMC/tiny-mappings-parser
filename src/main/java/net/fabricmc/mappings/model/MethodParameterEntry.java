@@ -1,4 +1,4 @@
-package net.fabricmc.tinyv2.model;
+package net.fabricmc.mappings.model;
 
 public interface MethodParameterEntry {
     MethodParameter get(String namespace);

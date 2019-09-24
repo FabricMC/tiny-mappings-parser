@@ -1,13 +1,12 @@
-package net.fabricmc.tinyv2;
+package net.fabricmc.mapping.reader.v2;
 
 import net.fabricmc.mappings.Mappings;
+import net.fabricmc.mappings.model.V2MappingsProvider;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 public class MappingsInterfaceTest {
 	@Test

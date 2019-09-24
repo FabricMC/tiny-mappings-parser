@@ -1,6 +1,5 @@
-package net.fabricmc.tinyv2;
+package net.fabricmc.mapping.reader.v2;
 
-import net.fabricmc.tinyv2.ClassMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;

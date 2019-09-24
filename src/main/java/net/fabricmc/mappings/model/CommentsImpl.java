@@ -1,4 +1,4 @@
-package net.fabricmc.tinyv2.model;
+package net.fabricmc.mappings.model;
 
 import java.util.Collection;
 import java.util.List;
