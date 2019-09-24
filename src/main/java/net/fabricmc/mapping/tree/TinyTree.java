@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * Represents a tiny mapping tree.
  */
-public interface TinyMapping {
+public interface TinyTree {
 
 	/**
 	 * Gets the metadata of this mapping tree.

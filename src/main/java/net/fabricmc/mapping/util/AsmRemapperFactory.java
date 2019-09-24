@@ -17,6 +17,7 @@
 package net.fabricmc.mapping.util;
 
 import net.fabricmc.mapping.tree.*;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.objectweb.asm.commons.Remapper;
 
 import net.fabricmc.mappings.*;
@@ -65,14 +66,14 @@ public final class AsmRemapperFactory {
 	}
 
 	private final Map<String, SoftReference<SimpleRemapper>> remapperCache = new HashMap<>();
-	private final TinyMapping mapping;
+	private final TinyTree mapping;
 
 	/**
 	 * Create a factory backed by a set of mapping.
 	 *
 	 * @param mapping the mapping
 	 */
-	public AsmRemapperFactory(TinyMapping mapping) {
+	public AsmRemapperFactory(TinyTree mapping) {
 		this.mapping = mapping;
 	}
 
@@ -86,8 +87,9 @@ public final class AsmRemapperFactory {
 	public Remapper getRemapper(String from, String to) {
 		String key = from + ":" + to;
 		SoftReference<SimpleRemapper> remapperRef = remapperCache.get(key);
-		if (remapperRef != null && remapperRef.get() != null) {
-			return remapperRef.get();
+		@Nullable SimpleRemapper ret;
+		if (remapperRef != null && (ret = remapperRef.get()) != null) {
+			return ret;
 		} else {
 			SimpleRemapper remapper = new SimpleRemapper(mapping.getClasses(), from, to);
 			remapperCache.put(key, new SoftReference<>(remapper));

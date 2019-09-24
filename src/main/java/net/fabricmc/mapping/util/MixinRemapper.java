@@ -3,7 +3,7 @@ package net.fabricmc.mapping.util;
 import net.fabricmc.mapping.tree.ClassDef;
 import net.fabricmc.mapping.tree.FieldDef;
 import net.fabricmc.mapping.tree.MethodDef;
-import net.fabricmc.mapping.tree.TinyMapping;
+import net.fabricmc.mapping.tree.TinyTree;
 import net.fabricmc.mappings.EntryTriple;
 import org.spongepowered.asm.mixin.extensibility.IRemapper;
 
@@ -21,7 +21,7 @@ public final class MixinRemapper implements IRemapper {
 	private final ClassMapper mapper;
 	private final ClassMapper unmapper;
 
-	public MixinRemapper(TinyMapping mapping, String from, String to) {
+	public MixinRemapper(TinyTree mapping, String from, String to) {
 		this(mapping.getClasses(), from, to);
 	}
 

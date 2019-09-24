@@ -1,12 +1,14 @@
 package net.fabricmc.mapping.tree;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import java.util.function.ToIntFunction;
 
 abstract class MappedImpl implements Mapped {
 
 	final ToIntFunction<String> namespaceMapper;
 	final String[] names;
-	String comment;
+	@Nullable String comment;
 
 	MappedImpl(ToIntFunction<String> namespaceMapper, String[] names) {
 		this.namespaceMapper = namespaceMapper;
@@ -26,7 +28,7 @@ abstract class MappedImpl implements Mapped {
 	}
 
 	@Override
-	public String getComment() {
+	public @Nullable String getComment() {
 		return comment;
 	}
 
@@ -36,7 +38,7 @@ abstract class MappedImpl implements Mapped {
 		return names[namespace];
 	}
 
-	void setComment(String comment) {
+	void setComment(@Nullable String comment) {
 		this.comment = comment;
 	}
 }

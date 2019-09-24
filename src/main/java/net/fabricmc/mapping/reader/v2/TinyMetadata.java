@@ -1,5 +1,7 @@
 package net.fabricmc.mapping.reader.v2;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +52,7 @@ public interface TinyMetadata {
 	 *
 	 * @return the properties
 	 */
-	Map<String, /* Nullable */ String> getProperties();
+	Map<String, @Nullable String> getProperties();
 
 	/**
 	 * Utility method to efficiently index a namespace's position in this mapping file.

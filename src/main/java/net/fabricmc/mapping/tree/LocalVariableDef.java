@@ -1,5 +1,7 @@
 package net.fabricmc.mapping.tree;
 
+import org.checkerframework.checker.index.qual.NonNegative;
+
 /**
  * Represents a local variable element in a method.
  */
@@ -10,14 +12,14 @@ public interface LocalVariableDef extends Mapped {
 	 *
 	 * @return the local variable index
 	 */
-	int getLocalVariableIndex();
+	@NonNegative int getLocalVariableIndex();
 
 	/**
 	 * Gets the local variable start offset of this local variable.
 	 *
 	 * @return the local variable start offset
 	 */
-	int getLocalVariableStartOffset();
+	@NonNegative int getLocalVariableStartOffset();
 
 	/**
 	 * Gets the index of this local variable in the local variable table.
@@ -26,5 +28,5 @@ public interface LocalVariableDef extends Mapped {
 	 *
 	 * @return the index in the local variable table or {@code -1}
 	 */
-	/* optional */ int getLocalVariableTableIndex();
+	int getLocalVariableTableIndex();
 }

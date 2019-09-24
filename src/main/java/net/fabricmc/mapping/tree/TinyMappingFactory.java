@@ -2,6 +2,7 @@ package net.fabricmc.mapping.tree;
 
 import com.google.common.collect.ImmutableList;
 import net.fabricmc.mapping.reader.v2.*;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,10 +22,32 @@ public final class TinyMappingFactory {
 	 * @throws IOException           if the reader throws one
 	 * @throws MappingParseException if there is an issue with the v2 format
 	 */
-	public static TinyMapping load(BufferedReader reader) throws IOException, MappingParseException {
+	public static TinyTree load(BufferedReader reader) throws IOException, MappingParseException {
 		Visitor visitor = new Visitor();
 		TinyV2Factory.visit(reader, visitor);
-		return new Mapping(visitor.metadata, visitor.classNames, visitor.classes);
+		return new Tree(visitor.metadata, visitor.classNames, visitor.classes);
+	}
+
+	/**
+	 * Loads a tree model from a buffered reader and automatically determine the input type.
+	 *
+	 * @param reader the buffered reader
+	 * @return the built reader model
+	 * @throws IOException           if the reader throws one
+	 * @throws MappingParseException if there is an issue with the v2 format
+	 */
+	public static TinyTree loadWithDetection(BufferedReader reader) throws IOException, MappingParseException {
+		reader.mark(8192);
+		String firstLine = reader.readLine();
+		String[] header = firstLine.split("\t");
+		reader.reset();
+		switch (header[0]) {
+			case "tiny":
+				return load(reader);
+			case "v1":
+				return loadLegacy(reader);
+		}
+		throw new UnsupportedOperationException("Unsupported format with header \"" + firstLine + "\"!");
 	}
 
 	/**
@@ -34,7 +57,7 @@ public final class TinyMappingFactory {
 	 * @return the built reader model
 	 * @throws IOException if the reader throws one
 	 */
-	public static TinyMapping loadLegacy(BufferedReader reader) throws IOException {
+	public static TinyTree loadLegacy(BufferedReader reader) throws IOException {
 		String[] header = reader.readLine().split("\t");
 		if (header.length <= 1 || !header[0].equals("v1")) {
 			throw new IOException("Invalid mapping version!");
@@ -108,21 +131,21 @@ public final class TinyMappingFactory {
 			parent.methods.add(method);
 		}
 
-		return new Mapping(new LegacyMetadata(ImmutableList.copyOf(namespaceList), namespacesToIds), firstNamespaceClassEntries, classEntries);
+		return new Tree(new LegacyMetadata(ImmutableList.copyOf(namespaceList), namespacesToIds), firstNamespaceClassEntries, classEntries);
 	}
 
 	private TinyMappingFactory() {
 	}
 
 	private static final class Visitor implements TinyVisitor {
-		TinyMetadata metadata;
-		ToIntFunction<String> namespaceMapper;
-		Map<String, ClassImpl> classNames = new HashMap<>();
-		Collection<ClassDef> classes = new ArrayList<>();
-		SignatureMapper signatureMapper = new SignatureMapper(classNames);
-		MappedImpl last;
-		ClassImpl inClass;
-		MethodImpl inMethod;
+		private @MonotonicNonNull TinyMetadata metadata;
+		private @MonotonicNonNull ToIntFunction<String> namespaceMapper;
+		private Map<String, ClassImpl> classNames = new HashMap<>();
+		private Collection<ClassDef> classes = new ArrayList<>();
+		private SignatureMapper signatureMapper = new SignatureMapper(classNames);
+		private @MonotonicNonNull MappedImpl last = null;
+		private @MonotonicNonNull ClassImpl inClass = null;
+		private @MonotonicNonNull MethodImpl inMethod = null;
 
 		@Override
 		public void start(TinyMetadata metadata) {
@@ -132,7 +155,7 @@ public final class TinyMappingFactory {
 
 		@Override
 		public void pushClass(MappingGetter name) {
-			ClassImpl clz = new ClassImpl(namespaceMapper, name.getRaw());
+			ClassImpl clz = new ClassImpl(namespaceMapper, name.getRawNames());
 			classes.add(clz);
 			classNames.put(name.get(0), clz);
 			inClass = clz;
@@ -144,7 +167,7 @@ public final class TinyMappingFactory {
 			if (inClass == null)
 				throw new IllegalStateException();
 
-			FieldImpl field = new FieldImpl(signatureMapper, namespaceMapper, name.getRaw(), descriptor);
+			FieldImpl field = new FieldImpl(signatureMapper, namespaceMapper, name.getRawNames(), descriptor);
 			inClass.fields.add(field);
 			last = field;
 		}
@@ -154,7 +177,7 @@ public final class TinyMappingFactory {
 			if (inClass == null)
 				throw new IllegalStateException();
 
-			MethodImpl method = new MethodImpl(signatureMapper, namespaceMapper, name.getRaw(), descriptor);
+			MethodImpl method = new MethodImpl(signatureMapper, namespaceMapper, name.getRawNames(), descriptor);
 			inClass.methods.add(method);
 			inMethod = method;
 			last = method;
@@ -165,7 +188,7 @@ public final class TinyMappingFactory {
 			if (inMethod == null)
 				throw new IllegalStateException();
 
-			ParameterImpl par = new ParameterImpl(namespaceMapper, name.getRaw(), localVariableIndex);
+			ParameterImpl par = new ParameterImpl(namespaceMapper, name.getRawNames(), localVariableIndex);
 			inMethod.parameters.add(par);
 			last = par;
 		}
@@ -175,7 +198,7 @@ public final class TinyMappingFactory {
 			if (inMethod == null)
 				throw new IllegalStateException();
 
-			LocalVariableImpl var = new LocalVariableImpl(namespaceMapper, name.getRaw(), localVariableIndex, localVariableStartOffset, localVariableTableIndex);
+			LocalVariableImpl var = new LocalVariableImpl(namespaceMapper, name.getRawNames(), localVariableIndex, localVariableStartOffset, localVariableTableIndex);
 			inMethod.localVariables.add(var);
 			last = var;
 		}
@@ -192,14 +215,14 @@ public final class TinyMappingFactory {
 		}
 	}
 
-	private static final class Mapping implements TinyMapping {
+	private static final class Tree implements TinyTree {
 
 		private final TinyMetadata metadata;
 		private final Map<String, ClassDef> map;
 		private final Collection<ClassDef> classes;
 
 		@SuppressWarnings("unchecked")
-		Mapping(TinyMetadata metadata, Map<String, ClassImpl> map, Collection<ClassDef> classes) {
+		Tree(TinyMetadata metadata, Map<String, ClassImpl> map, Collection<ClassDef> classes) {
 			this.metadata = metadata;
 			this.map = (Map<String, ClassDef>) (Map<?, ?>) map;
 			this.classes = classes;

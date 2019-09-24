@@ -1,5 +1,7 @@
 package net.fabricmc.mapping.tree;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 /**
  * Represents an element that can be mapped and have comments.
  */
@@ -22,7 +24,7 @@ public interface Mapped {
 	 * @param namespace the target namespace
 	 * @return the explicitly mapped name
 	 */
-	/* may be empty */ String getMappedName(String namespace);
+	String getMappedName(String namespace);
 
 	/**
 	 * Gets the comment (JavaDoc, etc.) on an element.
@@ -31,5 +33,5 @@ public interface Mapped {
 	 *
 	 * @return the comment or {@code null}
 	 */
-	/* Nullable */ String getComment();
+	@Nullable String getComment();
 }

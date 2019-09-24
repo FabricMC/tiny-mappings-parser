@@ -37,12 +37,11 @@ public final class TinyV2Factory {
 		final int namespaceCount;
 		final boolean escapedNames;
 		try {
-			final String[] firstLineGetter = new String[1];
-			final TinyMetadata meta = readMetadata(reader, firstLineGetter);
+			final TinyMetadata meta = readMetadata(reader);
 			namespaceCount = meta.getNamespaces().size();
 			escapedNames = meta.getProperties().containsKey(ESCAPED_NAMES_PROPERTY);
 			visitor.start(meta);
-			line = firstLineGetter[0];
+			line = reader.readLine();
 		} catch (RuntimeException ex) {
 			throw new MappingParseException("Error in the header!", ex);
 		}
@@ -97,11 +96,6 @@ public final class TinyV2Factory {
 	 * @throws IllegalArgumentException if a mapping format error is encountered
 	 */
 	public static TinyMetadata readMetadata(final BufferedReader reader) throws IOException, IllegalArgumentException {
-		return readMetadata(reader, new String[1]);
-	}
-
-	// Will not close reader
-	private static TinyMetadata readMetadata(final BufferedReader reader, final String[] extraLine) throws IOException, IllegalArgumentException {
 		final String firstLine = reader.readLine();
 		if (firstLine == null)
 			throw new IllegalArgumentException("Empty reader!");
@@ -125,10 +119,11 @@ public final class TinyV2Factory {
 
 		final Map<String, String> properties = new LinkedHashMap<>();
 		String line;
+		reader.mark(8192);
 		while ((line = reader.readLine()) != null) {
 			switch (countIndent(line)) {
 				case 0: {
-					extraLine[0] = line;
+					reader.reset();
 					return makeHeader(majorVersion, minorVersion, parts, properties);
 				}
 				case 1: {
@@ -140,9 +135,9 @@ public final class TinyV2Factory {
 					throw new IllegalArgumentException("Invalid indent in header! Encountered \"" + line + "\"!");
 				}
 			}
+			reader.mark(8192);
 		}
 
-		extraLine[0] = null;
 		return makeHeader(majorVersion, minorVersion, parts, properties);
 	}
 
@@ -165,11 +160,11 @@ public final class TinyV2Factory {
 		return new TinyHeader(major, minor, listBuilder.build(), mapBuilder.build(), ImmutableMap.copyOf(props));
 	}
 
-	static String unescapeOpt(String raw, boolean escapedStrings) {
+	private static String unescapeOpt(String raw, boolean escapedStrings) {
 		return escapedStrings ? unescape(raw) : raw;
 	}
 
-	static String unescape(String str) {
+	private static String unescape(String str) {
 		// copied from matcher, lazy!
 		int pos = str.indexOf('\\');
 		if (pos < 0) return str;
@@ -394,7 +389,12 @@ public final class TinyV2Factory {
 		}
 
 		@Override
-		public String[] getRaw() {
+		public String getRaw(int namespace) {
+			return unescapeOpt(parts[offset + namespace], escapedStrings);
+		}
+
+		@Override
+		public String[] getRawNames() {
 			if (!escapedStrings) {
 				return Arrays.copyOfRange(parts, offset, parts.length);
 			}
@@ -407,8 +407,8 @@ public final class TinyV2Factory {
 		}
 
 		@Override
-		public String[] getFilled() {
-			final String[] ret = getRaw();
+		public String[] getAllNames() {
+			final String[] ret = getRawNames();
 			for (int i = 1; i < ret.length; i++) {
 				if (ret[i].isEmpty()) {
 					ret[i] = ret[i - 1];

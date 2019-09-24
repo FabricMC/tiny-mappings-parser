@@ -18,11 +18,19 @@ public interface MappingGetter {
 	String get(int namespace);
 
 	/**
+	 * Gets the raw mapped name under a namespace with the namespace's index. May be empty.
+	 *
+	 * @param namespace the namespace's index
+	 * @return the retrieved raw name
+	 */
+	String getRaw(int namespace);
+
+	/**
 	 * Creates an array of all mapped names, ordered by their namespace's appearance.
 	 *
 	 * <p>This method returns all the mapped names in the declaration. It does not fill the
 	 * array to fill the empty namespaces with names from the last declared namespace. Use
-	 * {@link #getFilled()} for a version that fills empty namespaces.
+	 * {@link #getAllNames()} for a version that fills empty namespaces.
 	 *
 	 * <p>This method call would be expensive as each call may create a new array.
 	 *
@@ -30,18 +38,18 @@ public interface MappingGetter {
 	 *
 	 * @return all mapped names
 	 */
-	String[] getRaw();
+	String[] getRawNames();
 
 	/**
 	 * Creates an array of all mapped names, ordered by their namespace's appearance.
 	 *
 	 * <p>This method returns all the mapped names. It fills the empty namespaces with
-	 * names from the last declared namespace. Use {@link #getRaw()} for a version that
+	 * names from the last declared namespace. Use {@link #getRawNames()} for a version that
 	 * does not fill empty namespaces.
 	 *
 	 * <p>This method call would be expensive as each call may create a new array.
 	 *
 	 * @return all mapped names
 	 */
-	String[] getFilled();
+	String[] getAllNames();
 }
