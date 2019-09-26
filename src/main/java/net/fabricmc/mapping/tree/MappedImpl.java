@@ -33,8 +33,13 @@ abstract class MappedImpl implements Mapped {
 	}
 
 	String getName(int namespace) {
-		while (names[namespace].isEmpty())
+		if (namespace >= names.length)
+			namespace = names.length - 1;
+		while (names[namespace].isEmpty()) {
+			if (namespace == 0)
+				return "";
 			namespace--;
+		}
 		return names[namespace];
 	}
 

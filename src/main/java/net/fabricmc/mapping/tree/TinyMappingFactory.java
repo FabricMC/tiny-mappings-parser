@@ -90,7 +90,7 @@ public final class TinyMappingFactory {
 			if (splitLine.length >= 2) {
 				switch (splitLine[0]) {
 					case "CLASS":
-						ClassImpl entry = new ClassImpl(namespaceMapper, splitLine);
+						ClassImpl entry = new ClassImpl(namespaceMapper, Arrays.copyOfRange(splitLine, 1, splitLine.length));
 						classEntries.add(entry);
 						firstNamespaceClassEntries.put(entry.getName(0), entry);
 						break;
