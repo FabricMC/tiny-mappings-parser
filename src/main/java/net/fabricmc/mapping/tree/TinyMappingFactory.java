@@ -14,6 +14,8 @@ import java.util.function.ToIntFunction;
  */
 public final class TinyMappingFactory {
 
+	public static final TinyTree EMPTY_TREE = new EmptyTinyTree();
+
 	/**
 	 * Loads a tree model from a buffered reader for v2 input.
 	 *
