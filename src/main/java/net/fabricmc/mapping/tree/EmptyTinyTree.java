@@ -10,10 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 public class EmptyTinyTree implements TinyTree {
-    @Override
-    public TinyMetadata getMetadata() {
-        return new TinyMetadata() {
-            @Override
+    public static class Metadata implements TinyMetadata{
+         @Override
             public int getMajorVersion() {
                 return 2;
             }
@@ -37,7 +35,11 @@ public class EmptyTinyTree implements TinyTree {
             public int index(String namespace) throws IllegalArgumentException {
                 return 0;
             }
-        };
+    }
+
+    @Override
+    public TinyMetadata getMetadata() {
+        return TinyMappingFactory.EMPTY_METADATA;
     }
 
     @Override
