@@ -40,7 +40,7 @@ public interface Mapped {
 	 * @param namespace the target namespace
 	 * @return the explicitly mapped name
 	 */
-	String getMappedName(String namespace);
+	String getRawName(String namespace);
 
 	/**
 	 * Gets the comment (JavaDoc, etc.) on an element.

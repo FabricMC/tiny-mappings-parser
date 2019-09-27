@@ -25,11 +25,11 @@ import java.util.Map;
  *
  * <p>Note that remapping result changes when the map changes.
  */
-final class SignatureMapper {
+final class DescriptorMapper {
 
 	private final Map<String, ? extends MappedImpl> map;
 
-	SignatureMapper(Map<String, ? extends MappedImpl> map) {
+	DescriptorMapper(Map<String, ? extends MappedImpl> map) {
 		this.map = map;
 	}
 

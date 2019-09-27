@@ -20,11 +20,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.ToIntFunction;
 
-final class MethodImpl extends SignaturedImpl implements MethodDef {
+final class MethodImpl extends DescriptoredImpl implements MethodDef {
 	final Collection<ParameterDef> parameters = new ArrayList<>();
 	final Collection<LocalVariableDef> localVariables = new ArrayList<>();
 
-	MethodImpl(SignatureMapper mapper, ToIntFunction<String> namespaceMapper, String[] names, String signature) {
+	MethodImpl(DescriptorMapper mapper, ToIntFunction<String> namespaceMapper, String[] names, String signature) {
 		super(mapper, namespaceMapper, names, signature);
 	}
 

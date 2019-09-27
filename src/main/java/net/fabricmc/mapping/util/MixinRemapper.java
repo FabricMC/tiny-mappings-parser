@@ -50,10 +50,10 @@ public class MixinRemapper implements IRemapper {
 			classNames.put(className, mappedClassName);
 			unmapClassNames.put(mappedClassName, className);
 			for (FieldDef field : clz.getFields()) {
-				fieldNames.put(new EntryTriple(className, field.getName(from), field.getSignature(from)), field.getName(to));
+				fieldNames.put(new EntryTriple(className, field.getName(from), field.getDescriptor(from)), field.getName(to));
 			}
 			for (MethodDef method : clz.getMethods()) {
-				methodNames.put(new EntryTriple(className, method.getName(from), method.getSignature(from)), method.getName(to));
+				methodNames.put(new EntryTriple(className, method.getName(from), method.getDescriptor(from)), method.getName(to));
 			}
 		}
 

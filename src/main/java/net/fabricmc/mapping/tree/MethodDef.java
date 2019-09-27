@@ -21,7 +21,7 @@ import java.util.Collection;
 /**
  * Represents a method element in a class.
  */
-public interface MethodDef extends Signatured {
+public interface MethodDef extends Descriptored {
 
 	/**
 	 * Gets all parameter elements belonging to this method element.

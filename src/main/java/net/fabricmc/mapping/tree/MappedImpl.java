@@ -39,7 +39,7 @@ abstract class MappedImpl implements Mapped {
 	}
 
 	@Override
-	public String getMappedName(String namespace) {
+	public String getRawName(String namespace) {
 		return names[namespaceMapper.applyAsInt(namespace)];
 	}
 

@@ -120,7 +120,7 @@ public final class TinyMappingFactory {
 			}
 		}
 
-		SignatureMapper mapper = new SignatureMapper(firstNamespaceClassEntries);
+		DescriptorMapper mapper = new DescriptorMapper(firstNamespaceClassEntries);
 
 		for (String[] splitLine : fieldLines) {
 			// FIELD ClassName desc names ...
@@ -161,7 +161,7 @@ public final class TinyMappingFactory {
 		private @MonotonicNonNull ToIntFunction<String> namespaceMapper;
 		private Map<String, ClassImpl> classNames = new HashMap<>();
 		private Collection<ClassDef> classes = new ArrayList<>();
-		private SignatureMapper signatureMapper = new SignatureMapper(classNames);
+		private DescriptorMapper descriptorMapper = new DescriptorMapper(classNames);
 		private @MonotonicNonNull MappedImpl last = null;
 		private @MonotonicNonNull ClassImpl inClass = null;
 		private @MonotonicNonNull MethodImpl inMethod = null;
@@ -186,7 +186,7 @@ public final class TinyMappingFactory {
 			if (inClass == null)
 				throw new IllegalStateException();
 
-			FieldImpl field = new FieldImpl(signatureMapper, namespaceMapper, name.getRawNames(), descriptor);
+			FieldImpl field = new FieldImpl(descriptorMapper, namespaceMapper, name.getRawNames(), descriptor);
 			inClass.fields.add(field);
 			last = field;
 		}
@@ -196,7 +196,7 @@ public final class TinyMappingFactory {
 			if (inClass == null)
 				throw new IllegalStateException();
 
-			MethodImpl method = new MethodImpl(signatureMapper, namespaceMapper, name.getRawNames(), descriptor);
+			MethodImpl method = new MethodImpl(descriptorMapper, namespaceMapper, name.getRawNames(), descriptor);
 			inClass.methods.add(method);
 			inMethod = method;
 			last = method;

@@ -16,16 +16,22 @@
 
 package net.fabricmc.mapping.tree;
 
-/**
- * Represents a mapping element that has a descriptor.
- */
-public interface Signatured extends Mapped {
+import java.util.function.ToIntFunction;
 
-	/**
-	 * Maps the signature to the target namespace.
-	 *
-	 * @param namespace the target namespace
-	 * @return the mapped signature
-	 */
-	String getSignature(String namespace);
+abstract class DescriptoredImpl extends MappedImpl implements Descriptored {
+
+	final DescriptorMapper mapper;
+	final String signature;
+
+	DescriptoredImpl(DescriptorMapper mapper, ToIntFunction<String> namespaceMapper, String[] names, String signature) {
+		super(namespaceMapper, names);
+		this.mapper = mapper;
+		this.signature = signature;
+	}
+
+	@Override
+	public String getDescriptor(String namespace) {
+		int t = namespaceMapper.applyAsInt(namespace);
+		return t == 0 ? signature : mapper.mapDescriptor(t, signature);
+	}
 }
