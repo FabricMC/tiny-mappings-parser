@@ -1,16 +1,16 @@
 tiny	2	0	obf	deobf	third
-c	a	inh/Apple
+c	a	inh/Apple	
 	m	()V	a	sayName	sayNameToo
 		c	say the name.
-	f	Ljava/lang/String;	a	name
+	f	Ljava/lang/String;	a	name	
 		c	A name for myself
 	m	()Ljava/lang/String;	a	getSubName	getSubName2
 		c	Gets the name for this thing.
-c	b	inh/Bear
-c	c	inh/Supper
+c	b	inh/Bear	
+c	c	inh/Supper	
 	m	()V	b	sayCounter	countSay
 		c	Say about the counter.
-	f	I	a	counter
-c	d	inh/Avatar
-c	cuchaz/enigma/inputs/Keep	cuchaz/enigma/inputs/Keep
-	m	([Ljava/lang/String;)V	a	shoutOut
+	f	I	a	counter	
+c	d	inh/Avatar	
+c	cuchaz/enigma/inputs/Keep	cuchaz/enigma/inputs/Keep	
+	m	([Ljava/lang/String;)V	a	shoutOut	
