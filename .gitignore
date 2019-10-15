@@ -1,20 +1,21 @@
-# Ignore everything
-/*
+# gradle
 
-# Folders
-!/gradle
-!/src
+.gradle/
+build/
+out/
+classes/
 
-# Files
-!/.gitattributes
-!/.gitignore
-!/.editorconfig
-!/build.gradle
-!/gradle.properties
-!/gradlew
-!/gradlew.bat
-!/HEADER
-!/Jenkinsfile
-!/LICENSE
-!/README.md
-!/settings.gradle
+# idea
+
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# vscode
+
+.settings/
+.vscode/
+bin/
+.classpath
+.project
