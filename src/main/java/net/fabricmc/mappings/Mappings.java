@@ -16,6 +16,13 @@
 
 package net.fabricmc.mappings;
 
+import net.fabricmc.mappings.model.Comments;
+import net.fabricmc.mappings.model.CommentsImpl;
+import net.fabricmc.mappings.model.LocalVariableEntry;
+
+import net.fabricmc.mappings.model.MethodParameterEntry;
+
+import java.util.ArrayList;
 import java.util.Collection;
 
 public interface Mappings {
@@ -24,4 +31,10 @@ public interface Mappings {
 	Collection<ClassEntry> getClassEntries();
 	Collection<FieldEntry> getFieldEntries();
 	Collection<MethodEntry> getMethodEntries();
+	default Collection<MethodParameterEntry> getMethodParameterEntries() { return new ArrayList<>(); }
+	default Collection<LocalVariableEntry> getLocalVariableEntries() { return new ArrayList<>(); }
+	default Comments getComments(){
+		return new CommentsImpl(new ArrayList<>(),new ArrayList<>(),new ArrayList<>(),new ArrayList<>(),new ArrayList<>());
+	}
+
 }
