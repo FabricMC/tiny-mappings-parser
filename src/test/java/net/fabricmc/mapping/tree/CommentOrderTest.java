@@ -7,9 +7,12 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.util.Collections;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CommentOrderTest {
@@ -18,10 +21,12 @@ public class CommentOrderTest {
 
 	@BeforeAll
 	public void readOneFifteenTwoBuildTwoMappings() {
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(CommentOrderTest.class.getResourceAsStream("/1.15.2+build.2_mappings.tiny"), StandardCharsets.UTF_8))) {
-			tree = TinyMappingFactory.load(reader);
-		} catch (IOException ex) {
-			throw new UncheckedIOException(ex);
+		try (FileSystem fs = FileSystems.newFileSystem(new URI("jar:" + CommentOrderTest.class.getResource("/yarn-1.15.2+build.2-v2.jar").toString()), Collections.emptyMap())) {
+			try (BufferedReader reader = Files.newBufferedReader(fs.getPath("mappings", "mappings.tiny"))) {
+				tree = TinyMappingFactory.load(reader);
+			}
+		} catch (IOException | URISyntaxException ex) {
+			throw new RuntimeException(ex);
 		}
 	}
 
