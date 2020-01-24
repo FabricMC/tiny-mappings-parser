@@ -162,7 +162,8 @@ public final class TinyMappingFactory {
 		private Map<String, ClassImpl> classNames = new HashMap<>();
 		private Collection<ClassDef> classes = new ArrayList<>();
 		private DescriptorMapper descriptorMapper = new DescriptorMapper(classNames);
-		private @MonotonicNonNull MappedImpl last = null;
+		private Deque<MappedImpl> stack = new ArrayDeque<>(4);
+		private boolean pushedComment = false;
 		private @MonotonicNonNull ClassImpl inClass = null;
 		private @MonotonicNonNull MethodImpl inMethod = null;
 
@@ -178,7 +179,7 @@ public final class TinyMappingFactory {
 			classes.add(clz);
 			classNames.put(name.get(0), clz);
 			inClass = clz;
-			last = clz;
+			stack.addLast(clz);
 		}
 
 		@Override
@@ -188,7 +189,7 @@ public final class TinyMappingFactory {
 
 			FieldImpl field = new FieldImpl(descriptorMapper, namespaceMapper, name.getRawNames(), descriptor);
 			inClass.fields.add(field);
-			last = field;
+			stack.addLast(field);
 		}
 
 		@Override
@@ -199,7 +200,7 @@ public final class TinyMappingFactory {
 			MethodImpl method = new MethodImpl(descriptorMapper, namespaceMapper, name.getRawNames(), descriptor);
 			inClass.methods.add(method);
 			inMethod = method;
-			last = method;
+			stack.addLast(method);
 		}
 
 		@Override
@@ -209,7 +210,7 @@ public final class TinyMappingFactory {
 
 			ParameterImpl par = new ParameterImpl(namespaceMapper, name.getRawNames(), localVariableIndex);
 			inMethod.parameters.add(par);
-			last = par;
+			stack.addLast(par);
 		}
 
 		@Override
@@ -219,18 +220,32 @@ public final class TinyMappingFactory {
 
 			LocalVariableImpl var = new LocalVariableImpl(namespaceMapper, name.getRawNames(), localVariableIndex, localVariableStartOffset, localVariableTableIndex);
 			inMethod.localVariables.add(var);
-			last = var;
+			stack.addLast(var);
 		}
 
 		@Override
 		public void pushComment(String comment) {
-			if (last == null)
-				throw new IllegalStateException();
-			last.setComment(comment);
+			if (stack.isEmpty())
+				throw new IllegalStateException("Nothing to append comment on!");
+
+
+			if (pushedComment) {
+				throw new IllegalStateException("Commenting on a comment!");
+			}
+
+			stack.peekLast().setComment(comment);
+			pushedComment = true;
 		}
 
 		@Override
 		public void pop(int count) {
+			if (pushedComment) {
+				pushedComment = false;
+				count--;
+			}
+			for (int i = 0; i < count; i++) {
+				stack.removeLast();
+			}
 		}
 	}
 
