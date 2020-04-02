@@ -13,7 +13,7 @@ buildscript {
 }
 
 sourceCompatibility = 1.8
-version = '0.2.1'
+version = '0.2.2'
 
 def ENV = System.getenv()
 if (ENV.BUILD_NUMBER) {
@@ -40,11 +40,11 @@ dependencies {
 	)
 
 	compileOnly 'org.checkerframework:checker-qual:2.11.0'
-	implementation 'org.ow2.asm:asm:7.1'
-	implementation 'org.ow2.asm:asm-analysis:7.1'
-	implementation 'org.ow2.asm:asm-commons:7.1'
-	implementation 'org.ow2.asm:asm-tree:7.1'
-	implementation 'org.ow2.asm:asm-util:7.1'
+	implementation 'org.ow2.asm:asm:8.0'
+	implementation 'org.ow2.asm:asm-analysis:8.0'
+	implementation 'org.ow2.asm:asm-commons:8.0'
+	implementation 'org.ow2.asm:asm-tree:8.0'
+	implementation 'org.ow2.asm:asm-util:8.0'
 	implementation 'net.fabricmc:sponge-mixin:0.7.11.17'
 }
 
