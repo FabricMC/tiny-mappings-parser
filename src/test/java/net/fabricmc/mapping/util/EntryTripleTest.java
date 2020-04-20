@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappings.tests;
+package net.fabricmc.mapping.util;
 
-import net.fabricmc.mappings.EntryTriple;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-@Deprecated
-class EntryTripleTests {
+class EntryTripleTest {
     @Test
     void equalsTest() {
         Assertions.assertEquals(
-                new EntryTriple("a", "b", "c"),
-                new EntryTriple("a", "b", "c")
+                new EntryTriple("a", "b", "()"),
+                new EntryTriple(String.valueOf('a'), "b", "(" + ")")
         );
     }
 }

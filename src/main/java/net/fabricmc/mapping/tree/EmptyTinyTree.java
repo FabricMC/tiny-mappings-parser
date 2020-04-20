@@ -47,8 +47,8 @@ final class EmptyTinyTree implements TinyTree {
 		}
 
 		@Override
-		public int index(String namespace) throws IllegalArgumentException {
-			throw new IllegalArgumentException("No namespace \"" + namespace + "\"");
+		public int index(String namespace) {
+			return -1;
 		}
 	}
 

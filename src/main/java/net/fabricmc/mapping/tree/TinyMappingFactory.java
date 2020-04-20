@@ -54,7 +54,20 @@ public final class TinyMappingFactory {
 	 * @throws MappingParseException if there is an issue with the v2 format
 	 */
 	public static TinyTree load(BufferedReader reader) throws IOException, MappingParseException {
-		Visitor visitor = new Visitor();
+		return load(reader, false);
+	}
+
+	/**
+	 * Loads a tree model from a buffered reader for v2 input.
+	 *
+	 * @param reader the buffered reader
+	 * @param slim   whether parameters, local variables, or comments are omitted
+	 * @return the built reader model
+	 * @throws IOException           if the reader throws one
+	 * @throws MappingParseException if there is an issue with the v2 format
+	 */
+	public static TinyTree load(BufferedReader reader, boolean slim) throws IOException, MappingParseException {
+		Visitor visitor = new Visitor(slim);
 		TinyV2Factory.visit(reader, visitor);
 		return new Tree(visitor.metadata, visitor.classNames, visitor.classes);
 	}
@@ -68,15 +81,28 @@ public final class TinyMappingFactory {
 	 * @throws MappingParseException if there is an issue with the v2 format
 	 */
 	public static TinyTree loadWithDetection(BufferedReader reader) throws IOException, MappingParseException {
+		return loadWithDetection(reader, false);
+	}
+
+	/**
+	 * Loads a tree model from a buffered reader and automatically determine the input type.
+	 *
+	 * @param reader the buffered reader
+	 * @param slim   whether parameters, local variables, or comments are omitted
+	 * @return the built reader model
+	 * @throws IOException           if the reader throws one
+	 * @throws MappingParseException if there is an issue with the v2 format
+	 */
+	public static TinyTree loadWithDetection(BufferedReader reader, boolean slim) throws IOException, MappingParseException {
 		reader.mark(8192);
 		String firstLine = reader.readLine();
 		String[] header = firstLine.split("\t");
 		reader.reset();
 		switch (header[0]) {
-			case "tiny":
-				return load(reader);
-			case "v1":
-				return loadLegacy(reader);
+		case "tiny":
+			return load(reader, slim);
+		case "v1":
+			return loadLegacy(reader);
 		}
 		throw new UnsupportedOperationException("Unsupported format with header \"" + firstLine + "\"!");
 	}
@@ -169,15 +195,22 @@ public final class TinyMappingFactory {
 	}
 
 	private static final class Visitor implements TinyVisitor {
+		private static final MappedImpl SLIM_DUMMY = new MappedImpl(s -> 0, new String[0]) {
+		};
+		private final boolean slim;
 		private @MonotonicNonNull TinyMetadata metadata;
 		private @MonotonicNonNull ToIntFunction<String> namespaceMapper;
-		private Map<String, ClassImpl> classNames = new HashMap<>();
-		private Collection<ClassDef> classes = new ArrayList<>();
-		private DescriptorMapper descriptorMapper = new DescriptorMapper(classNames);
-		private Deque<MappedImpl> stack = new ArrayDeque<>(4);
+		private final Map<String, ClassImpl> classNames = new HashMap<>();
+		private final Collection<ClassDef> classes = new ArrayList<>();
+		private final DescriptorMapper descriptorMapper = new DescriptorMapper(classNames);
+		private final Deque<MappedImpl> stack = new ArrayDeque<>(4);
 		private boolean pushedComment = false;
 		private @MonotonicNonNull ClassImpl inClass = null;
 		private @MonotonicNonNull MethodImpl inMethod = null;
+
+		Visitor(boolean slim) {
+			this.slim = slim;
+		}
 
 		@Override
 		public void start(TinyMetadata metadata) {
@@ -217,8 +250,14 @@ public final class TinyMappingFactory {
 
 		@Override
 		public void pushParameter(MappingGetter name, int localVariableIndex) {
-			if (inMethod == null)
+			if (inMethod == null) {
 				throw new IllegalStateException();
+			}
+
+			if (slim) {
+				stack.addLast(SLIM_DUMMY);
+				return;
+			}
 
 			ParameterImpl par = new ParameterImpl(namespaceMapper, name.getRawNames(), localVariableIndex);
 			inMethod.parameters.add(par);
@@ -227,8 +266,14 @@ public final class TinyMappingFactory {
 
 		@Override
 		public void pushLocalVariable(MappingGetter name, int localVariableIndex, int localVariableStartOffset, int localVariableTableIndex) {
-			if (inMethod == null)
+			if (inMethod == null) {
 				throw new IllegalStateException();
+			}
+
+			if (slim) {
+				stack.addLast(SLIM_DUMMY);
+				return;
+			}
 
 			LocalVariableImpl var = new LocalVariableImpl(namespaceMapper, name.getRawNames(), localVariableIndex, localVariableStartOffset, localVariableTableIndex);
 			inMethod.localVariables.add(var);
@@ -237,15 +282,18 @@ public final class TinyMappingFactory {
 
 		@Override
 		public void pushComment(String comment) {
-			if (stack.isEmpty())
+			if (stack.isEmpty()) {
 				throw new IllegalStateException("Nothing to append comment on!");
+			}
 
 
 			if (pushedComment) {
 				throw new IllegalStateException("Commenting on a comment!");
 			}
 
-			stack.peekLast().setComment(comment);
+			if (!slim) {
+				stack.peekLast().setComment(comment);
+			}
 			pushedComment = true;
 		}
 
@@ -320,11 +368,8 @@ public final class TinyMappingFactory {
 		}
 
 		@Override
-		public int index(String namespace) throws IllegalArgumentException {
-			Integer t = namespacesToIds.get(namespace);
-			if (t == null)
-				throw new IllegalArgumentException("Invalid namespace \"" + namespace + "\"!");
-			return t;
+		public int index(String namespace) {
+			return namespacesToIds.getOrDefault(namespace, -1);
 		}
 	}
 }

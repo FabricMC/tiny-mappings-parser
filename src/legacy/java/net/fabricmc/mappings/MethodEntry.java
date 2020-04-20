@@ -14,19 +14,9 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappings.tests;
-
-import net.fabricmc.mappings.EntryTriple;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+package net.fabricmc.mappings;
 
 @Deprecated
-class EntryTripleTests {
-    @Test
-    void equalsTest() {
-        Assertions.assertEquals(
-                new EntryTriple("a", "b", "c"),
-                new EntryTriple("a", "b", "c")
-        );
-    }
+public interface MethodEntry {
+	EntryTriple get(String namespace);
 }

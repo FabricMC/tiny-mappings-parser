@@ -378,10 +378,7 @@ public final class TinyV2Factory {
 
 		@Override
 		public int index(String namespace) {
-			final Integer got = mapper.get(namespace);
-			if (got == null)
-				throw new IllegalArgumentException("Invalid namespace \"" + namespace + "\"!");
-			return got;
+			return mapper.getOrDefault(namespace, -1);
 		}
 	}
 

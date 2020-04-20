@@ -17,9 +17,12 @@
 package net.fabricmc.mapping.util;
 
 import java.util.Map;
+import java.util.function.Function;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
- * A simple class name mapper backed by a map.
+ * A simple class name mapper backed by a unary operator.
  *
  * <p>The class name is intended to be in the format like {@code java/lang/String}.
  *
@@ -27,7 +30,7 @@ import java.util.Map;
  */
 public final class ClassMapper {
 
-	private final Map<String, String> map;
+	private final Function<String, @Nullable String> mapper;
 
 	/**
 	 * Creates the mapper.
@@ -35,7 +38,19 @@ public final class ClassMapper {
 	 * @param map the map the mapper uses
 	 */
 	public ClassMapper(Map<String, String> map) {
-		this.map = map;
+		this(map::get);
+	}
+
+	/**
+	 * Creates the mapper.
+	 * 
+	 * <p>The {@code classMapping} can return {@code null}, in which
+	 * this class mapper will return the original class name passed.</p>
+	 *
+	 * @param classMapping the simple class name mapper
+	 */
+	public ClassMapper(Function<String, @Nullable String> classMapping) {
+		this.mapper = classMapping;
 	}
 
 	/**
@@ -45,7 +60,7 @@ public final class ClassMapper {
 	 * @return the mapped name
 	 */
 	public String mapClass(String old) {
-		String got = map.get(old);
+		@Nullable String got = mapper.apply(old);
 		return got == null ? old : got;
 	}
 

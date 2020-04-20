@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package net.fabricmc.mappings.tests;
+package net.fabricmc.mappings.model;
 
-import net.fabricmc.mappings.EntryTriple;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import java.util.Collection;
 
 @Deprecated
-class EntryTripleTests {
-    @Test
-    void equalsTest() {
-        Assertions.assertEquals(
-                new EntryTriple("a", "b", "c"),
-                new EntryTriple("a", "b", "c")
-        );
-    }
+public interface Comments {
+    Collection<CommentEntry.Class> getClassComments();
+	Collection<CommentEntry.Field> getFieldComments();
+	Collection<CommentEntry.Method> getMethodComments();
+	Collection<CommentEntry.Parameter> getMethodParameterComments();
+	Collection<CommentEntry.LocalVariableComment> getLocalVariableComments();
 }
