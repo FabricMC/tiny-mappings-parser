@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 FabricMC
+ * Copyright (c) 2019-2020 FabricMC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 
 package net.fabricmc.mapping.reader.v2;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -167,13 +167,13 @@ public final class TinyV2Factory {
 	}
 
 	private static TinyHeader makeHeader(int major, int minor, String[] parts, Map<String, String> props) {
-		ImmutableList.Builder<String> listBuilder = ImmutableList.builder();
-		ImmutableMap.Builder<String, Integer> mapBuilder = ImmutableMap.builder();
+		List<String> list = new ArrayList<>();
+		Map<String, Integer> map = new HashMap<>();
 		for (int i = 3; i < parts.length; i++) {
-			listBuilder.add(parts[i]);
-			mapBuilder.put(parts[i], i - 3);
+			list.add(parts[i]);
+			map.put(parts[i], i - 3);
 		}
-		return new TinyHeader(major, minor, listBuilder.build(), mapBuilder.build(), ImmutableMap.copyOf(props));
+		return new TinyHeader(major, minor, Collections.unmodifiableList(list), Collections.unmodifiableMap(map), Collections.unmodifiableMap(new HashMap<>(props)));
 	}
 
 	private static String unescapeOpt(String raw, boolean escapedStrings) {

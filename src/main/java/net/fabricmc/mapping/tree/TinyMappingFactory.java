@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 FabricMC
+ * Copyright (c) 2019-2020 FabricMC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,26 @@
 
 package net.fabricmc.mapping.tree;
 
-import com.google.common.collect.ImmutableList;
-import net.fabricmc.mapping.reader.v2.*;
-import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
-
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.ToIntFunction;
+
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+
+import net.fabricmc.mapping.reader.v2.MappingGetter;
+import net.fabricmc.mapping.reader.v2.MappingParseException;
+import net.fabricmc.mapping.reader.v2.TinyMetadata;
+import net.fabricmc.mapping.reader.v2.TinyV2Factory;
+import net.fabricmc.mapping.reader.v2.TinyVisitor;
 
 /**
  * The factory class for tree tiny mapping models.
@@ -141,7 +153,7 @@ public final class TinyMappingFactory {
 			String className = splitLine[1];
 			ClassImpl parent = firstNamespaceClassEntries.get(className);
 			if (parent == null) {
-				parent = new ClassImpl(namespaceMapper, new String[]{className}); // No class for my field, sad!
+				parent = new ClassImpl(namespaceMapper, new String[] {className}); // No class for my field, sad!
 				firstNamespaceClassEntries.put(className, parent);
 				classEntries.add(parent);
 			}
@@ -150,7 +162,7 @@ public final class TinyMappingFactory {
 			parent.methods.add(method);
 		}
 
-		return new Tree(new LegacyMetadata(ImmutableList.copyOf(namespaceList), namespacesToIds), firstNamespaceClassEntries, classEntries);
+		return new Tree(new LegacyMetadata(Collections.unmodifiableList(Arrays.asList(namespaceList)), namespacesToIds), firstNamespaceClassEntries, classEntries);
 	}
 
 	private TinyMappingFactory() {

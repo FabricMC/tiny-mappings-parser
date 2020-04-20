@@ -13,12 +13,11 @@ buildscript {
 }
 
 sourceCompatibility = 1.8
-version = '0.2.2'
+targetCompatibility = 1.8
+version = '0.3.0'
 
-def ENV = System.getenv()
-if (ENV.BUILD_NUMBER) {
-    version = version + "." + "${System.getenv().BUILD_NUMBER}"
-}
+def buildNumber = System.getenv("BUILD_NUMBER")
+version = version + "+" + (buildNumber ? "build.$buildNumber" : "local")
 
 group = 'net.fabricmc'
 archivesBaseName = 'tiny-mappings-parser'
@@ -32,40 +31,69 @@ repositories {
 }
 
 dependencies {
-	testImplementation(
-		'org.junit.jupiter:junit-jupiter-api:5.1.0'
-	)
-	testRuntimeOnly(
-		'org.junit.jupiter:junit-jupiter-engine:5.1.0'
-	)
-
-	compileOnly 'org.checkerframework:checker-qual:2.11.0'
+	compileOnly 'org.checkerframework:checker-qual:3.3.0'
 	implementation 'org.ow2.asm:asm:8.0'
 	implementation 'org.ow2.asm:asm-analysis:8.0'
 	implementation 'org.ow2.asm:asm-commons:8.0'
 	implementation 'org.ow2.asm:asm-tree:8.0'
 	implementation 'org.ow2.asm:asm-util:8.0'
-	implementation 'net.fabricmc:sponge-mixin:0.7.11.17'
+	implementation('net.fabricmc:sponge-mixin:0.7.11.17') {
+		transitive = false
+	}
+
+	testImplementation 'com.google.guava:guava:29.0-jre'
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.1.0'
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
+}
+
+javadoc {
+	options {
+		if (file("README.html").exists()) {
+			overview = "README.html"
+		}
+		source = "8"
+		encoding = 'UTF-8'
+		charSet = 'UTF-8'
+		memberLevel = JavadocMemberLevel.PROTECTED
+		links(
+				'https://asm.ow2.io/javadoc/',
+				'https://checkerframework.org/api/',
+				'https://docs.oracle.com/javase/8/docs/api/'
+		)
+		// Disable the crazy super-strict doclint tool in Java 8
+		addStringOption('Xdoclint:none', '-quiet')
+	}
+	source sourceSets.main.allJava.srcDirs
+	classpath = sourceSets.main.compileClasspath
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
-	classifier = 'sources'
+	archiveClassifier.set 'sources'
 	from sourceSets.main.allSource
 }
 
+task javadocsJar(type: Jar, dependsOn: javadoc) {
+	archiveClassifier.set 'javadocs'
+	from javadoc.destinationDir
+}
+
+artifacts {
+	archives sourcesJar
+	archives javadocsJar
+}
+
 test {
-    useJUnitPlatform()
+	useJUnitPlatform()
 }
 
 publishing {
 	publications {
 		maven(MavenPublication) {
-			groupId 'net.fabricmc'
-			artifactId "tiny-mappings-parser"
-			version version
+			from components.java
 
-			artifact (jar)
-			artifact (sourcesJar)
+			artifact jar
+			artifact sourcesJar
+			artifact javadocsJar
 		}
 	}
 }
@@ -73,6 +101,3 @@ publishing {
 apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/maven.gradle'
 apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/license.gradle'
 
-uploadArchives.repositories.mavenDeployer.pom.withXml {
-	asNode().dependencies.'*'.each() { it.parent().remove(it) }
-}
