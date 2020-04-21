@@ -51,6 +51,17 @@ public final class EntryTriple {
 		return descriptor;
 	}
 
+	/**
+	 * Returns a new entry as a result of remapping this entry.
+	 *
+	 * @param mapper  the mapper that remap class names
+	 * @param newName the new name for the entry
+	 * @return a new entry
+	 */
+	public EntryTriple map(ClassMapper mapper, String newName) {
+		return new EntryTriple(mapper.mapClass(this.owner), newName, mapper.mapDescriptor(this.descriptor));
+	}
+
 	@Override
 	public String toString() {
 		return "EntryTriple{owner=" + owner + ",name=" + name + ",desc=" + descriptor + "}";
