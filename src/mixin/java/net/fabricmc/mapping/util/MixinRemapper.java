@@ -29,9 +29,6 @@ import net.fabricmc.mapping.tree.TinyTree;
 
 /**
  * A simple implementation of a mixin remapper backed by a tree mapping.
- *
- * @deprecated See <a href="https://github.com/FabricMC/fabric-loader/pull/226#issuecomment-613064854">
- * Player's comment</a>
  */
 public class MixinRemapper implements IRemapper {
 

@@ -1,15 +1,9 @@
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
-apply plugin: 'maven-publish'
-
-buildscript {
-	repositories {
-		maven {
-			url "https://plugins.gradle.org/m2/"
-		}
-		jcenter()
-	}
+plugins {
+	id 'java'
+	id 'eclipse'
+	id 'idea'
+	id 'maven-publish'
+	id 'net.minecrell.licenser' version '0.4.1'
 }
 
 sourceCompatibility = 1.8
@@ -21,6 +15,11 @@ version = version + "+" + (buildNumber ? "build.$buildNumber" : "local")
 
 group = 'net.fabricmc'
 archivesBaseName = 'tiny-mappings-parser'
+
+license {
+	header file('HEADER')
+	include '**/*.java'
+}
 
 sourceSets {
 	asm
@@ -131,8 +130,16 @@ publishing {
 			artifact javadocsJar
 		}
 	}
+
+	repositories {
+		if (project.hasProperty('mavenPass')) {
+			maven {
+				url = "http://mavenupload.modmuss50.me/"
+				credentials {
+					username = "buildslave"
+					password = project.getProperty('mavenPass')
+				}
+			}
+		}
+	}
 }
-
-apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/maven.gradle'
-apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/license.gradle'
-
