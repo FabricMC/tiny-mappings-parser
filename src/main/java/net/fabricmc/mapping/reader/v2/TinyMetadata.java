@@ -16,10 +16,10 @@
 
 package net.fabricmc.mapping.reader.v2;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-
 import java.util.List;
 import java.util.Map;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Metadata for a Tiny V2 mapping file.
@@ -73,11 +73,12 @@ public interface TinyMetadata {
 	/**
 	 * Utility method to efficiently index a namespace's position in this mapping file.
 	 *
-	 * <p>The implementation should be more efficient than calling {@code getNamespaces().indexOf(namespace)}.
+	 * <p>A custom implementation should be more efficient than calling {@code getNamespaces().indexOf(namespace)}.
 	 *
 	 * @param namespace the literal namespace
-	 * @return the namespace's index
-	 * @throws IllegalArgumentException if the namespace does not exist in the mapping
+	 * @return the namespace's index, or {@code -1} if the namespace does not exist
 	 */
-	int index(String namespace) throws IllegalArgumentException;
+	default int index(String namespace) {
+		return getNamespaces().indexOf(namespace);
+	}
 }
