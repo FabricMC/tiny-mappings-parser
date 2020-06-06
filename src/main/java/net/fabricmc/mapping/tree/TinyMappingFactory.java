@@ -165,7 +165,9 @@ public final class TinyMappingFactory {
 			String className = splitLine[1];
 			ClassImpl parent = firstNamespaceClassEntries.get(className);
 			if (parent == null) {
-				parent = new ClassImpl(namespaceMapper, new String[]{className}); // No class for my field, sad!
+				String[] name = new String[namespaceList.length];
+				Arrays.fill(name, className);
+				parent = new ClassImpl(namespaceMapper, name); // No class for my field, sad!
 				firstNamespaceClassEntries.put(className, parent);
 				classEntries.add(parent);
 			}
@@ -179,7 +181,9 @@ public final class TinyMappingFactory {
 			String className = splitLine[1];
 			ClassImpl parent = firstNamespaceClassEntries.get(className);
 			if (parent == null) {
-				parent = new ClassImpl(namespaceMapper, new String[] {className}); // No class for my field, sad!
+				String[] name = new String[namespaceList.length];
+				Arrays.fill(name, className);
+				parent = new ClassImpl(namespaceMapper, name); // No class for my field, sad!
 				firstNamespaceClassEntries.put(className, parent);
 				classEntries.add(parent);
 			}
