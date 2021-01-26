@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.ToIntFunction;
 
+import net.fabricmc.mapping.util.StringPool;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
 import net.fabricmc.mapping.reader.v2.MappingGetter;
@@ -120,6 +121,8 @@ public final class TinyMappingFactory {
 			throw new IOException("Invalid mapping version!");
 		}
 
+		// String pool falls out of scope after loading, allowing it to be garbage collected
+		StringPool stringPool = new StringPool();
 		String[] namespaceList = new String[header.length - 1];
 
 		final Map<String, Integer> namespacesToIds = new HashMap<>();
@@ -144,7 +147,7 @@ public final class TinyMappingFactory {
 			if (splitLine.length >= 2) {
 				switch (splitLine[0]) {
 					case "CLASS":
-						ClassImpl entry = new ClassImpl(namespaceMapper, Arrays.copyOfRange(splitLine, 1, splitLine.length));
+						ClassImpl entry = new ClassImpl(namespaceMapper, stringPool.pool(Arrays.copyOfRange(splitLine, 1, splitLine.length)));
 						classEntries.add(entry);
 						firstNamespaceClassEntries.put(entry.getName(0), entry);
 						break;
@@ -165,12 +168,12 @@ public final class TinyMappingFactory {
 			String className = splitLine[1];
 			ClassImpl parent = firstNamespaceClassEntries.get(className);
 			if (parent == null) {
-				parent = new ClassImpl(namespaceMapper, new String[]{className}); // No class for my field, sad!
+				parent = new ClassImpl(namespaceMapper, stringPool.pool(new String[]{className})); // No class for my field, sad!
 				firstNamespaceClassEntries.put(className, parent);
 				classEntries.add(parent);
 			}
 
-			FieldImpl field = new FieldImpl(mapper, namespaceMapper, Arrays.copyOfRange(splitLine, 3, splitLine.length), splitLine[2]);
+			FieldImpl field = new FieldImpl(mapper, namespaceMapper, stringPool.pool(Arrays.copyOfRange(splitLine, 3, splitLine.length)), stringPool.pool(splitLine[2]));
 			parent.fields.add(field);
 		}
 
@@ -179,12 +182,12 @@ public final class TinyMappingFactory {
 			String className = splitLine[1];
 			ClassImpl parent = firstNamespaceClassEntries.get(className);
 			if (parent == null) {
-				parent = new ClassImpl(namespaceMapper, new String[] {className}); // No class for my field, sad!
+				parent = new ClassImpl(namespaceMapper, stringPool.pool(new String[] {className})); // No class for my field, sad!
 				firstNamespaceClassEntries.put(className, parent);
 				classEntries.add(parent);
 			}
 
-			MethodImpl method = new MethodImpl(mapper, namespaceMapper, Arrays.copyOfRange(splitLine, 3, splitLine.length), splitLine[2]);
+			MethodImpl method = new MethodImpl(mapper, namespaceMapper, stringPool.pool(Arrays.copyOfRange(splitLine, 3, splitLine.length)), stringPool.pool(splitLine[2]));
 			parent.methods.add(method);
 		}
 
@@ -207,6 +210,7 @@ public final class TinyMappingFactory {
 		private boolean pushedComment = false;
 		private @MonotonicNonNull ClassImpl inClass = null;
 		private @MonotonicNonNull MethodImpl inMethod = null;
+		private StringPool stringPool = new StringPool();
 
 		Visitor(boolean slim) {
 			this.slim = slim;
@@ -220,7 +224,7 @@ public final class TinyMappingFactory {
 
 		@Override
 		public void pushClass(MappingGetter name) {
-			ClassImpl clz = new ClassImpl(namespaceMapper, name.getRawNames());
+			ClassImpl clz = new ClassImpl(namespaceMapper, stringPool.pool(name.getRawNames()));
 			classes.add(clz);
 			classNames.put(name.get(0), clz);
 			inClass = clz;
@@ -232,7 +236,7 @@ public final class TinyMappingFactory {
 			if (inClass == null)
 				throw new IllegalStateException();
 
-			FieldImpl field = new FieldImpl(descriptorMapper, namespaceMapper, name.getRawNames(), descriptor);
+			FieldImpl field = new FieldImpl(descriptorMapper, namespaceMapper, stringPool.pool(name.getRawNames()), stringPool.pool(descriptor));
 			inClass.fields.add(field);
 			stack.addLast(field);
 		}
@@ -242,7 +246,7 @@ public final class TinyMappingFactory {
 			if (inClass == null)
 				throw new IllegalStateException();
 
-			MethodImpl method = new MethodImpl(descriptorMapper, namespaceMapper, name.getRawNames(), descriptor);
+			MethodImpl method = new MethodImpl(descriptorMapper, namespaceMapper, stringPool.pool(name.getRawNames()), stringPool.pool(descriptor));
 			inClass.methods.add(method);
 			inMethod = method;
 			stack.addLast(method);
@@ -259,7 +263,7 @@ public final class TinyMappingFactory {
 				return;
 			}
 
-			ParameterImpl par = new ParameterImpl(namespaceMapper, name.getRawNames(), localVariableIndex);
+			ParameterImpl par = new ParameterImpl(namespaceMapper, stringPool.pool(name.getRawNames()), localVariableIndex);
 			inMethod.parameters.add(par);
 			stack.addLast(par);
 		}
@@ -275,7 +279,7 @@ public final class TinyMappingFactory {
 				return;
 			}
 
-			LocalVariableImpl var = new LocalVariableImpl(namespaceMapper, name.getRawNames(), localVariableIndex, localVariableStartOffset, localVariableTableIndex);
+			LocalVariableImpl var = new LocalVariableImpl(namespaceMapper, stringPool.pool(name.getRawNames()), localVariableIndex, localVariableStartOffset, localVariableTableIndex);
 			inMethod.localVariables.add(var);
 			stack.addLast(var);
 		}
@@ -292,7 +296,7 @@ public final class TinyMappingFactory {
 			}
 
 			if (!slim) {
-				stack.peekLast().setComment(comment);
+				stack.peekLast().setComment(stringPool.pool(comment));
 			}
 			pushedComment = true;
 		}
